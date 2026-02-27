@@ -66,16 +66,28 @@ function App() {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+
         ctx.lineCap = 'round'
         ctx.lineJoin = 'round'
         ctx.lineWidth = brushSize;
         ctx.strokeStyle = brushColor;
         ctx.shadowBlur = 0;
-        
-        ctx.beginPath();
-        ctx.moveTo(lastPos.current.x, lastPos.current.y);
-        ctx.lineTo(currentPos.x, currentPos.y);
-        ctx.stroke();
+
+        const angleStep = (2 * Math.PI) / symmetryCount;
+        ctx.save();
+        ctx.translate(cx, cy);
+
+        for (let i = 0; i < symmetryCount; i++) {
+            ctx.rotate(angleStep);
+            ctx.beginPath();
+            ctx.moveTo(lastPos.current.x - cx, lastPos.current.y - cy);
+            ctx.lineTo(currentPos.x - cx, currentPos.y - cy);
+            ctx.stroke();
+        }
+
+        ctx.restore();
         lastPos.current = currentPos;
     }, [brushSize, brushColor, getCoordinates])
 
