@@ -57,6 +57,28 @@ function App() {
         isDrawing.current = false;
     }, [])
 
+    const draw = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+        e.preventDefault();
+        if (!isDrawing.current) return;
+        const currentPos = getCoordinates(e);
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        ctx.lineCap = 'round'
+        ctx.lineJoin = 'round'
+        ctx.lineWidth = brushSize;
+        ctx.strokeStyle = brushColor;
+        ctx.shadowBlur = 0;
+        
+        ctx.beginPath();
+        ctx.moveTo(lastPos.current.x, lastPos.current.y);
+        ctx.lineTo(currentPos.x, currentPos.y);
+        ctx.stroke();
+        lastPos.current = currentPos;
+    }, [brushSize, brushColor, getCoordinates])
+
     return (
         <div className="w-screen h-screen overflow-hidden bg-zinc-950 font-sans text-white select-none relative">
             <canvas
@@ -69,6 +91,8 @@ function App() {
                 onTouchStart={startDrawing}
                 onTouchEnd={stopDrawing}
                 onTouchCancel={stopDrawing}
+                onMouseMove={draw}
+                onTouchMove={draw}
             />
         </div>
     );
