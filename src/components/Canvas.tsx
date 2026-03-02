@@ -1,0 +1,170 @@
+import React, { useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { BG_COLOR } from '../lib/constants';
+
+export interface CanvasHandle {
+    getCanvas: () => HTMLCanvasElement | null;
+    getContext: () => CanvasRenderingContext2D | null;
+    toDataURL: () => string;
+}
+
+interface Props {
+    brushColor: string;
+    brushSize: number;
+    glow: boolean;
+    mirror: boolean;
+    symmetryCount: number;
+    onStrokeStart: () => void;
+}
+
+const Canvas = forwardRef<CanvasHandle, Props>(({ brushColor, brushSize, glow, mirror, symmetryCount, onStrokeStart }, ref) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const isDrawing = useRef(false);
+    const lastPos = useRef({ x: 0, y: 0 });
+
+    useImperativeHandle(ref, () => ({
+        getCanvas: () => canvasRef.current,
+        getContext: () => canvasRef.current?.getContext('2d') ?? null,
+        toDataURL: () => canvasRef.current?.toDataURL() ?? '',
+    }));
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (ctx) {
+            ctx.fillStyle = BG_COLOR;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    }, []);
+
+    useEffect(() => {
+        const handleResize = () => {
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+
+            const dataUrl = canvas.toDataURL();
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            ctx.fillStyle = BG_COLOR;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const img = new Image();
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0);
+            };
+            img.src = dataUrl;
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const getCoordinates = useCallback(
+        (e: React.MouseEvent | React.TouchEvent): { x: number; y: number } => {
+            const canvas = canvasRef.current;
+            if (!canvas) return { x: 0, y: 0 };
+
+            const rect = canvas.getBoundingClientRect();
+            const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+            const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top,
+            };
+        },
+        [],
+    );
+
+    const stopDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+        e.preventDefault();
+        isDrawing.current = false;
+    }, []);
+
+    const draw = useCallback(
+        (e: React.MouseEvent | React.TouchEvent) => {
+            e.preventDefault();
+            if (!isDrawing.current) return;
+            const currentPos = getCoordinates(e);
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = brushSize;
+            ctx.strokeStyle = brushColor;
+
+            if (glow) {
+                ctx.shadowBlur = brushSize * 3;
+                ctx.shadowColor = brushColor;
+            } else {
+                ctx.shadowBlur = 0;
+            }
+
+            const angleStep = (2 * Math.PI) / symmetryCount;
+            ctx.save();
+            ctx.translate(cx, cy);
+
+            for (let i = 0; i < symmetryCount; i++) {
+                ctx.rotate(angleStep);
+                ctx.beginPath();
+                ctx.moveTo(lastPos.current.x - cx, lastPos.current.y - cy);
+                ctx.lineTo(currentPos.x - cx, currentPos.y - cy);
+                ctx.stroke();
+
+                if (mirror) {
+                    ctx.save();
+                    ctx.scale(-1, 1);
+                    ctx.beginPath();
+                    ctx.moveTo(lastPos.current.x - cx, lastPos.current.y - cy);
+                    ctx.lineTo(currentPos.x - cx, currentPos.y - cy);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+
+            ctx.restore();
+            lastPos.current = currentPos;
+        },
+        [brushSize, brushColor, getCoordinates, symmetryCount, glow, mirror],
+    );
+
+    const startDrawing = useCallback(
+        (e: React.MouseEvent | React.TouchEvent) => {
+            e.preventDefault();
+            onStrokeStart();
+            isDrawing.current = true;
+            lastPos.current = getCoordinates(e);
+        },
+        [getCoordinates, onStrokeStart],
+    );
+
+    return (
+        <canvas
+            ref={canvasRef}
+            className="absolute inset-0 cursor-crosshair touch-none"
+            style={{ touchAction: 'none' }}
+            onMouseDown={startDrawing}
+            onMouseMove={draw}
+            onMouseUp={stopDrawing}
+            onMouseOut={stopDrawing}
+            onTouchStart={startDrawing}
+            onTouchMove={draw}
+            onTouchEnd={stopDrawing}
+            onTouchCancel={stopDrawing}
+        />
+    );
+});
+
+Canvas.displayName = 'Canvas';
+export default React.memo(Canvas);

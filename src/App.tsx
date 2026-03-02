@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import { COLORS, BG_COLOR, DEFAULTS } from "./lib/constants";
+import Canvas, { type CanvasHandle } from "./components/Canvas";
 import {
   Download,
   Undo,
@@ -13,117 +14,20 @@ import {
 } from "lucide-react";
 
 function App() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [symmetryCount, setSymmetryCount] = useState(DEFAULTS.symmetryCount);
-  const [brushColor, setBrushColor] = useState(DEFAULTS.brushColor);
-  const [brushSize, setBrushSize] = useState(DEFAULTS.brushSize);
-  const [glow, setGlow] = useState(DEFAULTS.glow);
-  const [mirror, setMirror] = useState(DEFAULTS.mirror);
-  const [showGuides, setShowGuides] = useState(DEFAULTS.showGuides);
+  const canvasHandle = useRef<CanvasHandle>(null);
+  const [symmetryCount, setSymmetryCount] = useState<number>(DEFAULTS.symmetryCount);
+  const [brushColor, setBrushColor] = useState<string>(DEFAULTS.brushColor);
+  const [brushSize, setBrushSize] = useState<number>(DEFAULTS.brushSize);
+  const [glow, setGlow] = useState<boolean>(DEFAULTS.glow);
+  const [mirror, setMirror] = useState<boolean>(DEFAULTS.mirror);
+  const [showGuides, setShowGuides] = useState<boolean>(DEFAULTS.showGuides);
   const [undoStack, setUndoStack] = useState<string[]>([]);
-  const isDrawing = useRef(false);
-  const lastPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-
-  const initCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    if (!ctx) return;
-
-    ctx.fillStyle = BG_COLOR;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }, []);
-
-  React.useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    initCanvas();
-  }, [initCanvas]);
-
-  const getCoordinates = useCallback(
-    (e: React.MouseEvent | React.TouchEvent): { x: number; y: number } => {
-      const canvas = canvasRef.current;
-      if (!canvas) return { x: 0, y: 0 };
-
-      const rect = canvas.getBoundingClientRect();
-      const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
-      const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
-
-      return {
-        x: clientX - rect.left,
-        y: clientY - rect.top,
-      };
-    },
-    [],
-  );
-
-  const stopDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    isDrawing.current = false;
-  }, []);
-
-  const draw = useCallback(
-    (e: React.MouseEvent | React.TouchEvent) => {
-      e.preventDefault();
-      if (!isDrawing.current) return;
-      const currentPos = getCoordinates(e);
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.lineWidth = brushSize;
-      ctx.strokeStyle = brushColor;
-      ctx.shadowBlur = 0;
-
-      if (glow) {
-        ctx.shadowBlur = brushSize * 3;
-        ctx.shadowColor = brushColor;
-      } else {
-        ctx.shadowBlur = 0;
-      }
-
-      const angleStep = (2 * Math.PI) / symmetryCount;
-      ctx.save();
-      ctx.translate(cx, cy);
-
-      for (let i = 0; i < symmetryCount; i++) {
-        ctx.rotate(angleStep);
-        ctx.beginPath();
-        ctx.moveTo(lastPos.current.x - cx, lastPos.current.y - cy);
-        ctx.lineTo(currentPos.x - cx, currentPos.y - cy);
-        ctx.stroke();
-
-        if (mirror) {
-          ctx.save();
-          ctx.scale(-1, 1);
-          ctx.beginPath();
-          ctx.moveTo(lastPos.current.x - cx, lastPos.current.y - cy);
-          ctx.lineTo(currentPos.x - cx, currentPos.y - cy);
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
-
-      ctx.restore();
-      lastPos.current = currentPos;
-    },
-    [brushSize, brushColor, getCoordinates, symmetryCount, glow, mirror],
-  );
 
   const saveState = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    setUndoStack((prev) => [...prev, canvas.toDataURL()]);
+    const dataUrl = canvasHandle.current?.toDataURL();
+    if (dataUrl) {
+      setUndoStack((prev) => [...prev, dataUrl]);
+    }
   }, []);
 
   const renderGuides = () => {
@@ -148,23 +52,13 @@ function App() {
     );
   };
 
-  const startDrawing = useCallback(
-    (e: React.MouseEvent | React.TouchEvent) => {
-      e.preventDefault();
-      saveState();
-      isDrawing.current = true;
-      lastPos.current = getCoordinates(e);
-    },
-    [getCoordinates, saveState],
-  );
-
   const undo = useCallback(() => {
     if (undoStack.length === 0) return;
 
     const lastState = undoStack[undoStack.length - 1];
     setUndoStack((prev) => prev.slice(0, -1));
 
-    const canvas = canvasRef.current;
+    const canvas = canvasHandle.current?.getCanvas();
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -180,8 +74,13 @@ function App() {
 
   const clearCanvas = useCallback(() => {
     saveState();
-    initCanvas();
-  }, [saveState, initCanvas]);
+    const canvas = canvasHandle.current?.getCanvas();
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.fillStyle = BG_COLOR;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }, [saveState]);
 
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -195,34 +94,9 @@ function App() {
     return () => window.removeEventListener("keydown", handler);
   }, [undo]);
 
-  React.useEffect(() => {
-    const handleResize = () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const dataUrl = canvas.toDataURL();
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      ctx.fillStyle = BG_COLOR;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      const img = new Image();
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0);
-      };
-      img.src = dataUrl;
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const [toastMsg, setToastMsg] = useState("");
+  const [_toastMsg, setToastMsg] = useState("");
   const handleExport = useCallback(() => {
-    const canvas = canvasRef.current;
+    const canvas = canvasHandle.current?.getCanvas();
     if (!canvas) return;
 
     const link = document.createElement("a");
@@ -236,18 +110,14 @@ function App() {
 
   return (
     <div className="w-screen h-screen overflow-hidden bg-zinc-950 font-sans text-white select-none relative">
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 cursor-crosshair touch-none"
-        style={{ touchAction: "none" }}
-        onMouseDown={startDrawing}
-        onMouseUp={stopDrawing}
-        onMouseOut={stopDrawing}
-        onTouchStart={startDrawing}
-        onTouchEnd={stopDrawing}
-        onTouchCancel={stopDrawing}
-        onMouseMove={draw}
-        onTouchMove={draw}
+      <Canvas
+        ref={canvasHandle}
+        brushColor={brushColor}
+        brushSize={brushSize}
+        glow={glow}
+        mirror={mirror}
+        symmetryCount={symmetryCount}
+        onStrokeStart={saveState}
       />
       {renderGuides()}
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 pointer-events-none">
