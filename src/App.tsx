@@ -249,6 +249,14 @@ function App() {
           </button>
         </div>
       </div>
+
+      <div className="absolute bottom-6 left-1/2 - translate-x-1/2 z-10 pointer-events-auto">
+        <div className="flex items-center gap-4 bg-zinc-900/80 backdrop-blur-xl border border-zinc-700/50 p-3 rounded-2xl shadow-2xl max-w-900[vw] overflow-x-auto scrollbar-hide">
+            <span className="text-zinc-500 text-sm">Tools Loading...</span>
+        </div>
+      </div>
+
+      <style dangerouslySetInnerHTML={{__html: `.scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }`}} />
     </div>
   );
 }
