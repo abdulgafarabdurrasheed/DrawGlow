@@ -1,10 +1,8 @@
 import React, { useState, useRef, useCallback } from "react";
 import { COLORS, BG_COLOR, DEFAULTS } from "./lib/constants";
 import Canvas, { type CanvasHandle } from "./components/Canvas";
+import TopBar from "./components/TopBar";
 import {
-  Download,
-  Undo,
-  Trash2,
   Palette,
   ChevronLeft,
   ChevronRight,
@@ -120,38 +118,12 @@ function App() {
         onStrokeStart={saveState}
       />
       {renderGuides()}
-      <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 pointer-events-none">
-        <div className="flex items-center gap-2 pointer-events-auto">
-          <h1 className="text-xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-            DrawGlow
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-3 pointer-events-auto">
-          <button
-            onClick={undo}
-            disabled={undoStack.length === 0}
-            className="p-2.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 disabled:opacity-30 disabled:hover:bg-zinc-900/80 backdrop-blur-md transition-all border border-zinc-800"
-            title="Undo (Ctrl+Z)"
-          >
-            <Undo className="w-5 h-5" />
-          </button>
-          <button
-            className="p-2.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 backdrop-blur-md transition-all border border-zinc-800"
-            onClick={clearCanvas}
-            title="Clear Canvas"
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
-          <button
-            onClick={handleExport}
-            className="px-4 py-2.5 rounded-xl bg-white text-black hover:bg-gray-200 font-semibold flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all transform hover:scale-105"
-          >
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Export PNG</span>
-          </button>
-        </div>
-      </div>
+      <TopBar
+        undoDisabled={undoStack.length === 0}
+        onUndo={undo}
+        onClear={clearCanvas}
+        onExport={handleExport}
+      />
 
       <div className="absolute bottom-6 left-1/2 - translate-x-1/2 z-10 pointer-events-auto">
         <div className="flex items-center gap-4 bg-zinc-900/80 backdrop-blur-xl border border-zinc-700/50 p-3 rounded-2xl shadow-2xl max-w-900[vw] overflow-x-auto scrollbar-hide">
