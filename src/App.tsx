@@ -9,6 +9,7 @@ function App() {
     const [glow, setGlow] = useState(DEFAULTS.glow)
     const [mirror, setMirror] = useState(DEFAULTS.mirror)
     const [showGuides, setShowGuides] = useState(DEFAULTS.showGuides)
+    const [undoStack, setUndoStack] = useState<string[]>([]);
     const isDrawing = useRef(false);
     const lastPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -108,6 +109,39 @@ function App() {
         lastPos.current = currentPos;
     }, [brushSize, brushColor, getCoordinates])
 
+    const saveState = useCallback(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        setUndoStack(prev => [...prev, canvas.toDataURL()]);
+    }, []);
+
+    const startDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+        e.preventDefault();
+        saveState();
+        isDrawing.current = true;
+        lastPos.current = getCoordinates(e);
+    }, [getCoordinates, saveState]);
+
+    const undo = useCallback(() => {
+        if (undoStack.length === 0) return;
+
+        const lastState = undoStack[undoStack.length - 1];
+        setUndoStack(prev => prev.slice(0, -1));
+
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const img = new Image();
+        img.onload = () => {
+            ctx.fillStyle = BG_COLOR;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+        };
+        img.src = lastState;
+    }, [undoStack]);
+    
     return (
         <div className="w-screen h-screen overflow-hidden bg-zinc-950 font-sans text-white select-none relative">
             <canvas
