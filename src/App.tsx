@@ -126,6 +126,28 @@ function App() {
     setUndoStack((prev) => [...prev, canvas.toDataURL()]);
   }, []);
 
+  const renderGuides = () => {
+    if (!showGuides) return null;
+    const lines = [];
+    const totalLines = symmetryCount * (mirror ? 2 : 1);
+    const angleStep = 360 / totalLines;
+
+    for (let i = 0; i < totalLines; i++) {
+        lines.push(
+            <div
+                key={i}
+                className="absolute top-1/2 left-1/2 w-[1px] h-[100vmax] bg-white/[0.04] origin-top pointer-events-none"
+                style={{ transform: `translate(-50%, 0) rotate(${i * angleStep}deg)` }}
+            />
+        );
+    }
+    return (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {lines}
+        </div>
+    );
+  };
+
   const startDrawing = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
       e.preventDefault();
@@ -227,6 +249,7 @@ function App() {
         onMouseMove={draw}
         onTouchMove={draw}
       />
+      {renderGuides()}
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto">
           <h1 className="text-xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
