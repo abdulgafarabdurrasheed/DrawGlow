@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import { COLORS, BG_COLOR, DEFAULTS } from "./lib/constants";
-import { Download, Undo, Trash2, Sparkles } from "lucide-react";
+import { Download, Undo, Trash2 } from "lucide-react";
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -252,8 +252,28 @@ function App() {
 
       <div className="absolute bottom-6 left-1/2 - translate-x-1/2 z-10 pointer-events-auto">
         <div className="flex items-center gap-4 bg-zinc-900/80 backdrop-blur-xl border border-zinc-700/50 p-3 rounded-2xl shadow-2xl max-w-900[vw] overflow-x-auto scrollbar-hide">
-            <span className="text-zinc-500 text-sm">Tools Loading...</span>
+            <div className="flex items-center gap-2 pr-4 border-r border-zinc-800">
+                {COLORS.map((color) => (
+                    <button
+                        key={color}
+                        onClick={() => setBrushColor(color)}
+                        className={`w-7 h-7 rounded-full transition-transform ${
+                        brushColor === color 
+                            ? 'scale-125 ring-2 ring-white ring-offset-2 ring-offset-zinc-900' 
+                            : 'hover:scale-110'
+                        }`}
+                        style={{ 
+                        backgroundColor: color,
+                        boxShadow: brushColor === color && glow 
+                            ? `0 0 10px ${color}` 
+                            : 'none'
+                        }}
+                    />
+                ))}
+            </div>
         </div>
+
+        
       </div>
 
       <style dangerouslySetInnerHTML={{__html: `.scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }`}} />
