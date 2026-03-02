@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import { COLORS, BG_COLOR, DEFAULTS } from "./lib/constants";
-import { Download, Undo, Trash2 } from "lucide-react";
+import { Download, Undo, Trash2, Palette } from "lucide-react";
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -273,7 +273,17 @@ function App() {
             </div>
         </div>
 
-        
+        <div className="flex items-center gap-3 pr-4 border-r border-zinc-800">
+            <Palette className="w-4 h-4 text-zinc-400" />
+            <input 
+                type="range"
+                min="1"
+                max="15"
+                value={brushSize}
+                onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                className="w-24 accent-cyan-400"
+            />
+        </div>
       </div>
 
       <style dangerouslySetInnerHTML={{__html: `.scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }`}} />
