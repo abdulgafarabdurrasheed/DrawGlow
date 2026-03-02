@@ -75,6 +75,13 @@ function App() {
         ctx.strokeStyle = brushColor;
         ctx.shadowBlur = 0;
 
+        if (glow) {
+            ctx.shadowBlur = brushSize * 3;
+            ctx.shadowColor = brushColor;
+        } else {
+            ctx.shadowBlur = 0;
+        }
+
         const angleStep = (2 * Math.PI) / symmetryCount;
         ctx.save();
         ctx.translate(cx, cy);
@@ -85,6 +92,16 @@ function App() {
             ctx.moveTo(lastPos.current.x - cx, lastPos.current.y - cy);
             ctx.lineTo(currentPos.x - cx, currentPos.y - cy);
             ctx.stroke();
+
+            if (mirror) {
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.beginPath();
+                ctx.moveTo(lastPos.current.x - cx, lastPos.current.y - cy);
+                ctx.lineTo(currentPos.x - cx, currentPos.y - cy);
+                ctx.stroke();
+                ctx.restore();
+            }
         }
 
         ctx.restore();
