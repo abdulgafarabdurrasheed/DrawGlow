@@ -47,12 +47,6 @@ function App() {
         };
     }, []);
 
-    const startDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-        e.preventDefault();
-        isDrawing.current = true;
-        lastPos.current = getCoordinates(e);
-    }, [getCoordinates]);
-
     const stopDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
         e.preventDefault();
         isDrawing.current = false;
@@ -141,6 +135,23 @@ function App() {
         };
         img.src = lastState;
     }, [undoStack]);
+
+    const clearCanvas = useCallback(() => {
+        saveState();
+        initCanvas();
+    }, [saveState, initCanvas]);
+
+    React.useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                undo();
+            }
+        };
+
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [undo]);
     
     return (
         <div className="w-screen h-screen overflow-hidden bg-zinc-950 font-sans text-white select-none relative">
