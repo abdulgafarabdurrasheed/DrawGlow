@@ -1,10 +1,11 @@
-import { Download, Undo, Trash2, Sparkles } from "lucide-react";
+import { Download, Undo, Trash2, Sparkles, Save } from "lucide-react";
 
 interface Props {
   undoDisabled: boolean;
   onUndo: () => void;
   onClear: () => void;
   onExport: () => void;
+  onSave: () => void;
 }
 
 export default function TopBar({
@@ -12,6 +13,7 @@ export default function TopBar({
   onUndo,
   onClear,
   onExport,
+  onSave,
 }: Props) {
   return (
     <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 pointer-events-none">
@@ -39,6 +41,13 @@ export default function TopBar({
           title="Clear Canvas"
         >
           <Trash2 className="w-5 h-5" />
+        </button>
+        <button
+          onClick={onSave}
+          className="p-2.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 backdrop-blur-md transition-all border border-zinc-800"
+          title="Save to Gallery"
+        >
+          <Save className="w-5 h-5" />
         </button>
         <button
           onClick={onExport}
