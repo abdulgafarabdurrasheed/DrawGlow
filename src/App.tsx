@@ -131,6 +131,16 @@ function App() {
     setToastMsg('Saved to Gallery! 📸');
   }, [gallery, symmetryCount]);
 
+  const deleteFromGallery = useCallback((id: string) => {
+    const updated = gallery.filter((item) => item.id !== id);
+    setGallery(updated);
+    try {
+      localStorage.setItem('neonmandala-gallery', JSON.stringify(updated));
+    } catch {
+      // Storage error — silently fail
+    }
+  }, [gallery]);
+
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const ctrl = e.ctrlKey || e.metaKey;
@@ -191,6 +201,7 @@ function App() {
         onClear={clearCanvas}
         onExport={handleExport}
         onSave={saveToGallery}
+        onGallery={() => setShowGallery(true)}
       />
       <ToolPalette
         brushColor={brushColor}
@@ -221,6 +232,55 @@ function App() {
             boxShadow: glow ? `0 0 ${brushSize * 3}px ${brushColor}40` : 'none',
             transition: 'width 0.15s, height 0.15s, box-shadow 0.15s',
           }} />
+      )}
+
+      {showGallery && (
+        <div className="fixed inset-0 z-50 flex">
+      <div
+        className="flex-1 bg-black/60 backdrop-blur-sm"
+        onClick={() => setShowGallery(false)}
+      />
+      <div className="w-80 bg-zinc-900 border-l border-zinc-800 p-4 overflow-y-auto">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-white tracking-wider">Gallery</h2>
+          <button
+            onClick={() => setShowGallery(false)}
+            className="text-zinc-400 hover:text-white transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+
+        {gallery.length === 0 ? (
+          <p className="text-zinc-500 text-sm text-center py-8">
+            No saved artworks yet.<br />
+            Draw something beautiful, then save it!
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {gallery.map((item) => (
+              <div key={item.id} className="group relative">
+                <img
+                  src={item.dataUrl}
+                  alt={item.name}
+                  className="w-full aspect-square rounded-lg border border-zinc-800 object-cover hover:border-cyan-500/50 transition-colors cursor-pointer"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 rounded-b-lg">
+                  <p className="text-xs text-white truncate">{item.name}</p>
+                  <p className="text-[10px] text-zinc-400">{item.symmetryCount} axes</p>
+                </div>
+                <button
+                  onClick={() => deleteFromGallery(item.id)}
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500/80 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
       )}
 
       <style
