@@ -39,40 +39,6 @@ A neon-glow radial symmetry drawing app built with React, TypeScript, and HTML5 
 | `[` | Decrease symmetry axes |
 | `]` | Increase symmetry axes |
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Framework | React 19 |
-| Language | TypeScript 5.9 |
-| Bundler | Vite 7 |
-| Styling | Tailwind CSS 4 |
-| Icons | Lucide React |
-| Canvas | HTML5 Canvas 2D API |
-| Storage | localStorage |
-
-## Project Structure
-
-```
-src/
-├── App.tsx                    # App shell, state orchestration, gallery drawer
-├── main.tsx                   # Entry point
-├── index.css                  # Global styles + Tailwind
-├── components/
-│   ├── Canvas.tsx             # Drawing engine (forwardRef + useImperativeHandle)
-│   ├── TopBar.tsx             # Logo, undo, clear, save, gallery, export buttons
-│   ├── ToolPalette.tsx        # Floating toolbar container (composition component)
-│   ├── ColorPicker.tsx        # 8 neon color swatches
-│   ├── BrushSlider.tsx        # Brush size range input
-│   ├── SymmetryControl.tsx    # Axes stepper (−/+)
-│   ├── ToggleGroup.tsx        # Glow, mirror, guides toggle buttons
-│   ├── GuidesOverlay.tsx      # Radial guide lines + center dot (DOM-based)
-│   └── Toast.tsx              # Auto-dismiss notification component
-└── lib/
-    ├── constants.ts           # Colors, defaults, limits (as const)
-    └── types.ts               # BrushSettings, DrawingState, CanvasPoint
-```
-
 ### Architecture Decisions
 
 - **Canvas component** uses `forwardRef` + `useImperativeHandle` to expose `getCanvas()`, `getContext()`, and `toDataURL()` — keeping the imperative canvas API encapsulated while letting App.tsx orchestrate undo/export/gallery
