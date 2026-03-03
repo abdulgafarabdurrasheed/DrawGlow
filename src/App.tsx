@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { BG_COLOR, DEFAULTS, LIMITS } from "./lib/constants";
 import Canvas, { type CanvasHandle } from "./components/Canvas";
 import TopBar from "./components/TopBar";
@@ -87,6 +87,23 @@ function App() {
     setToastMsg("Masterpiece Exported! \uD83C\uDFA8");
   }, []);
 
+  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 })
+  const [showCursor, setShowCursor] = useState(false);
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setCursorPos({ x: e.clientX, y: e.clientY });
+      setShowCursor(true);
+    };
+    const handleMouseLeave = () => setShowCursor(false);
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseleave', handleMouseLeave);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
+
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const ctrl = e.ctrlKey || e.metaKey;
@@ -158,6 +175,21 @@ function App() {
         setShowGuides={setShowGuides}
       />
       {toastMsg && <Toast message={toastMsg} onDismiss={() => setToastMsg('')} />}
+
+      {showCursor && (
+        <div
+          className="fixed pointer-events-none z-[999] rounded-full border border-white/30 mix-blend-screen animate-pulse"
+          style={{
+            left: cursorPos.x,
+            top: cursorPos.y,
+            width: brushSize * 6 + (glow ? brushSize * 2 : 0),
+            height: brushSize * 6 + (glow ? brushSize * 2 : 0),
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: `${brushColor}33`,
+            boxShadow: glow ? `0 0 ${brushSize * 3}px ${brushColor}40` : 'none',
+            transition: 'width 0.15s, height 0.15s, box-shadow 0.15s',
+          }} />
+      )}
 
       <style
         dangerouslySetInnerHTML={{
