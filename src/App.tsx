@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
-import { BG_COLOR, DEFAULTS } from "./lib/constants";
+import { BG_COLOR, DEFAULTS, LIMITS } from "./lib/constants";
 import Canvas, { type CanvasHandle } from "./components/Canvas";
 import TopBar from "./components/TopBar";
 import ToolPalette from "./components/ToolPalette";
@@ -74,18 +74,6 @@ function App() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }, [saveState]);
 
-  React.useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "z") {
-        e.preventDefault();
-        undo();
-      }
-    };
-
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [undo]);
-
   const [toastMsg, setToastMsg] = useState("");
   const handleExport = useCallback(() => {
     const canvas = canvasHandle.current?.getCanvas();
@@ -98,6 +86,44 @@ function App() {
 
     setToastMsg("Masterpiece Exported! \uD83C\uDFA8");
   }, []);
+
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const ctrl = e.ctrlKey || e.metaKey;
+      if (ctrl && e.key === "z") {
+        e.preventDefault();
+        undo();
+      }
+      if (ctrl && e.key === "s") {
+        e.preventDefault();
+        handleExport();
+      }
+      if (e.key === "g") {
+        if (document.activeElement?.tagName !== 'INPUT') {
+          setShowGuides(prev => !prev);
+        }
+      }
+      if (e.key === 'm') {
+        if (document.activeElement?.tagName !== 'INPUT') {
+          setMirror(prev => !prev);
+        }
+      }
+      if (e.key === 'n') {
+        if (document.activeElement?.tagName !== 'INPUT') {
+          setGlow(prev => !prev);
+        }
+      }
+      if (e.key === '[') {
+        setSymmetryCount(prev => Math.max(LIMITS.minAxes, prev - LIMITS.axesStep));
+      }
+      if (e.key === ']') {
+        setSymmetryCount(prev => Math.min(LIMITS.maxAxes, prev + LIMITS.axesStep));
+      }
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [undo, handleExport]);
 
   return (
     <div className="w-screen h-screen overflow-hidden bg-zinc-950 font-sans text-white select-none relative">
