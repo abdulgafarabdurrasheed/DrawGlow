@@ -1,73 +1,81 @@
-# React + TypeScript + Vite
+# DrawGlow
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A neon-glow radial symmetry drawing app built with React, TypeScript, and HTML5 Canvas. Draw mesmerizing mandala patterns with real-time symmetry, glowing neon effects, and a dark canvas aesthetic.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Drawing Engine
+- **Radial Symmetry** — draw once, see it mirrored across 2–32 axes (adjustable in steps of 2)
+- **Mirror Reflection** — doubles your symmetry lines for kaleidoscope-like patterns
+- **Neon Glow** — toggle `shadowBlur`-based glow that makes every stroke radiate light
+- **Dynamic Brush Cursor** — a glowing circle follows your mouse, sized to match your brush + glow radius
 
-## React Compiler
+### Tools & Controls
+- **8 Neon Colors** — curated palette: white, cyan, purple, pink, rose, amber, emerald, blue
+- **Brush Size** — adjustable from 1px to 15px via slider
+- **Symmetry Axes** — stepper control (2–32 axes, step of 2)
+- **Toggle Group** — glow, mirror, and guide lines on/off
+- **Undo** — snapshot-based undo (stores canvas state as data URLs)
+- **Clear Canvas** — wipes the canvas (auto-saves state for undo)
+- **Export PNG** — downloads the full-resolution canvas as a PNG file
+- **Guide Lines** — faint radial lines with a center dot to help align your drawing (DOM-based, never exported)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Gallery
+- **Save to Gallery** — captures a 200×200 JPEG thumbnail with metadata
+- **Gallery Drawer** — slide-out panel showing saved artworks in a 2-column grid
+- **Delete Artworks** — hover to reveal a delete button on each thumbnail
+- **Persistent Storage** — up to 20 artworks saved in `localStorage`
+- **Auto-dismiss Toast** — confirmation notifications with configurable duration
 
-## Expanding the ESLint configuration
+### Keyboard Shortcuts
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| Key | Action |
+|-----|--------|
+| `Ctrl+Z` | Undo |
+| `Ctrl+S` | Export PNG |
+| `G` | Toggle guide lines |
+| `M` | Toggle mirror |
+| `N` | Toggle neon glow |
+| `[` | Decrease symmetry axes |
+| `]` | Increase symmetry axes |
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Tech Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+| Layer | Technology |
+|-------|------------|
+| Framework | React 19 |
+| Language | TypeScript 5.9 |
+| Bundler | Vite 7 |
+| Styling | Tailwind CSS 4 |
+| Icons | Lucide React |
+| Canvas | HTML5 Canvas 2D API |
+| Storage | localStorage |
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Project Structure
+
+```
+src/
+├── App.tsx                    # App shell, state orchestration, gallery drawer
+├── main.tsx                   # Entry point
+├── index.css                  # Global styles + Tailwind
+├── components/
+│   ├── Canvas.tsx             # Drawing engine (forwardRef + useImperativeHandle)
+│   ├── TopBar.tsx             # Logo, undo, clear, save, gallery, export buttons
+│   ├── ToolPalette.tsx        # Floating toolbar container (composition component)
+│   ├── ColorPicker.tsx        # 8 neon color swatches
+│   ├── BrushSlider.tsx        # Brush size range input
+│   ├── SymmetryControl.tsx    # Axes stepper (−/+)
+│   ├── ToggleGroup.tsx        # Glow, mirror, guides toggle buttons
+│   ├── GuidesOverlay.tsx      # Radial guide lines + center dot (DOM-based)
+│   └── Toast.tsx              # Auto-dismiss notification component
+└── lib/
+    ├── constants.ts           # Colors, defaults, limits (as const)
+    └── types.ts               # BrushSettings, DrawingState, CanvasPoint
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Architecture Decisions
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **Canvas component** uses `forwardRef` + `useImperativeHandle` to expose `getCanvas()`, `getContext()`, and `toDataURL()` — keeping the imperative canvas API encapsulated while letting App.tsx orchestrate undo/export/gallery
+- **ToolPalette** is a pure composition component — it renders 4 sub-components and adds zero logic of its own
+- **Guide lines are DOM elements**, not drawn on the canvas. This means they never appear in exported PNGs — users get clean artwork without construction lines
+- **Gallery thumbnails** are 200×200 JPEG at 0.7 quality (~10-30KB each) to stay well within the ~5MB localStorage limit
