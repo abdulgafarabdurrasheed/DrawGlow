@@ -1,8 +1,8 @@
-import React from "react";
+import { COLORS } from "../lib/constants";
 import ColorPicker from "./ColorPicker";
 import BrushSlider from "./BrushSlider";
 import SymmetryControl from "./SymmetryControl";
-import { ToggleGroup } from "./ToggleGroup";
+import ToggleGroup from "./ToggleGroup";
 
 interface Props {
   brushColor: string;
