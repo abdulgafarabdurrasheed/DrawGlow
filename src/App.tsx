@@ -3,6 +3,7 @@ import { BG_COLOR, DEFAULTS } from "./lib/constants";
 import Canvas, { type CanvasHandle } from "./components/Canvas";
 import TopBar from "./components/TopBar";
 import ToolPalette from "./components/ToolPalette";
+import Toast from "./components/Toast";
 
 function App() {
   const canvasHandle = useRef<CanvasHandle>(null);
@@ -85,7 +86,7 @@ function App() {
     return () => window.removeEventListener("keydown", handler);
   }, [undo]);
 
-  const [_toastMsg, setToastMsg] = useState("");
+  const [toastMsg, setToastMsg] = useState("");
   const handleExport = useCallback(() => {
     const canvas = canvasHandle.current?.getCanvas();
     if (!canvas) return;
@@ -95,8 +96,7 @@ function App() {
     link.href = canvas.toDataURL("image/png");
     link.click();
 
-    setToastMsg("Image exported!");
-    setTimeout(() => setToastMsg(""), 3000);
+    setToastMsg("Masterpiece Exported! \uD83C\uDFA8");
   }, []);
 
   return (
@@ -131,6 +131,7 @@ function App() {
         setMirror={setMirror}
         setShowGuides={setShowGuides}
       />
+      {toastMsg && <Toast message={toastMsg} onDismiss={() => setToastMsg('')} />}
 
       <style
         dangerouslySetInnerHTML={{
