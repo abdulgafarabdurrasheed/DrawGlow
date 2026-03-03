@@ -4,6 +4,7 @@ import Canvas, { type CanvasHandle } from "./components/Canvas";
 import TopBar from "./components/TopBar";
 import ToolPalette from "./components/ToolPalette";
 import Toast from "./components/Toast";
+import GuidesOverlay from "./components/GuidesOverlay";
 
 function App() {
   const canvasHandle = useRef<CanvasHandle>(null);
@@ -21,28 +22,6 @@ function App() {
       setUndoStack((prev) => [...prev, dataUrl]);
     }
   }, []);
-
-  const renderGuides = () => {
-    if (!showGuides) return null;
-    const lines = [];
-    const totalLines = symmetryCount * (mirror ? 2 : 1);
-    const angleStep = 360 / totalLines;
-
-    for (let i = 0; i < totalLines; i++) {
-        lines.push(
-            <div
-                key={i}
-                className="absolute top-1/2 left-1/2 w-[1px] h-[100vmax] bg-white/[0.04] origin-top pointer-events-none"
-                style={{ transform: `translate(-50%, 0) rotate(${i * angleStep}deg)` }}
-            />
-        );
-    }
-    return (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {lines}
-        </div>
-    );
-  };
 
   const undo = useCallback(() => {
     if (undoStack.length === 0) return;
@@ -153,7 +132,11 @@ function App() {
         symmetryCount={symmetryCount}
         onStrokeStart={saveState}
       />
-      {renderGuides()}
+      <GuidesOverlay
+        symmetryCount={symmetryCount}
+        mirror={mirror}
+        visible={showGuides}
+      />
       <TopBar
         undoDisabled={undoStack.length === 0}
         onUndo={undo}
