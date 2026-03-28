@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type  { CanvasHandle } from "../components/Canvas";
+import { get, set as setIdb, update } from "idb-keyval";
 
 export interface GalleryItem {
     id: string;
@@ -9,18 +10,22 @@ export interface GalleryItem {
     name: string;
 }
 
+const STORE_KEY = 'neonmandala-gallery';
+
 export function useGallery(
     canvasHandle: React.RefObject<CanvasHandle | null>,
     symmetryCount: number,
     setToastMsg: (msg: string) => void
 ) {
-    const [gallery, setGallery] = useState<GalleryItem[]>(() => {
-        try {
-            return JSON.parse(localStorage.getItem('neonmandala-gallery') || '[]');
-        } catch {
-            return [];
-        }
-    });
+    const [gallery, setGallery] = useState<GalleryItem[]>([]);
+
+    useEffect(() => {
+        get<GalleryItem[]>(STORE_KEY).then((data) => {
+            if (data) setGallery(data);
+        }).catch((err) => {
+            console.error("Failed to load DB", err);
+        });
+    }, []);
 
     const saveToGallery = useCallback(() => {
         const canvas = canvasHandle.current?.getCanvas();
@@ -46,11 +51,9 @@ export function useGallery(
         const updated = [item, ...gallery].slice(0, 20);
         setGallery(updated);
 
-        try {
-            localStorage.setItem('neonmandala-gallery', JSON.stringify(updated));
-        } catch {
-            //
-        }
+        setIdb(STORE_KEY, updated).catch((err) => {
+          console.error("Failed to save to DB", err);  
+        });
         setToastMsg('Saved to Gallery! 📸');
     }, [gallery, symmetryCount, canvasHandle, setToastMsg]);
 
@@ -58,11 +61,7 @@ export function useGallery(
         const updated = gallery.filter((item) => item.id !== id);
         setGallery(updated);
 
-        try {
-            localStorage.setItem('neonmandala-gallery', JSON.stringify(updated));
-        } catch {
-            //
-        }
+        setIdb(STORE_KEY, updated).catch(() => {});
     }, [gallery]);
 
     return { gallery, saveToGallery, deleteFromGallery };
