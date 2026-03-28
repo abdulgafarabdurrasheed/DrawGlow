@@ -7,10 +7,10 @@ export interface Stroke {
     points: Point[];
     brushColor: string;
     brushSize: number;
+    brushOpacity: number;
     glow: boolean;
     mirror: boolean;
     symmetryCount: number;
-    brushOpacity: number;
 }
 
 export interface CanvasHandle {
@@ -21,20 +21,23 @@ export interface CanvasHandle {
 }
 
 interface Props {
+    strokes: Stroke[];
     brushColor: string;
     brushSize: number;
+    brushOpacity: number;
     glow: boolean;
     mirror: boolean;
     symmetryCount: number;
-    brushOpacity: number;
     onStrokeEnd: (stroke: Stroke) => void;
 }
 
-const Canvas = forwardRef<CanvasHandle, Props>(({ brushColor, brushSize, glow, mirror, symmetryCount, brushOpacity, onStrokeEnd }, ref) => {
+const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, onStrokeEnd }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawing = useRef(false);
     const lastPos = useRef<Point>({ x: 0, y: 0 });
     const currentStroke = useRef<Stroke | null>(null);
+    
+    const viewport = useRef({ x: 0, y: 0, scale: 1 });
 
     const drawStrokeSegment = useCallback((ctx: CanvasRenderingContext2D, stroke: Stroke, lastP: Point, currP: Point, cx: number, cy: number) => {
         const angleStep = (2 * Math.PI) / stroke.symmetryCount;
@@ -61,51 +64,101 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ brushColor, brushSize, glow, m
         ctx.restore();
     }, []);
 
+    const performRedraw = useCallback((localStrokes: Stroke[]) => {
+        const canvas = canvasRef.current;
+        const ctx = canvas?.getContext('2d');
+        if (!canvas || !ctx) return;
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = BG_COLOR;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.translate(viewport.current.x, viewport.current.y);
+        ctx.scale(viewport.current.scale, viewport.current.scale);
+
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+
+        localStrokes.forEach(stroke => {
+            if (stroke.points.length < 2) return;
+
+            ctx.globalAlpha = stroke.brushOpacity;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = stroke.brushSize;
+            ctx.strokeStyle = stroke.brushColor;
+            ctx.shadowBlur = stroke.glow ? stroke.brushSize * 3 : 0;
+            ctx.shadowColor = stroke.glow ? stroke.brushColor : 'transparent';
+
+            for (let p = 1; p < stroke.points.length; p++) {
+                drawStrokeSegment(ctx, stroke, stroke.points[p - 1], stroke.points[p], cx, cy);
+            }
+        });
+        
+        if (currentStroke.current && currentStroke.current.points.length > 0) {
+            const tempStroke = currentStroke.current;
+            ctx.globalAlpha = tempStroke.brushOpacity;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = tempStroke.brushSize;
+            ctx.strokeStyle = tempStroke.brushColor;
+            ctx.shadowBlur = tempStroke.glow ? tempStroke.brushSize * 3 : 0;
+            ctx.shadowColor = tempStroke.glow ? tempStroke.brushColor : 'transparent';
+            
+            for (let p = 1; p < tempStroke.points.length; p++) {
+                drawStrokeSegment(ctx, tempStroke, tempStroke.points[p - 1], tempStroke.points[p], cx, cy);
+            }
+        }
+    }, [drawStrokeSegment]);
+
     useImperativeHandle(ref, () => ({
         getCanvas: () => canvasRef.current,
         getContext: () => canvasRef.current?.getContext('2d') ?? null,
         toDataURL: () => canvasRef.current?.toDataURL() ?? '',
-        redrawStrokes: (strokes: Stroke[]) => {
-            const canvas = canvasRef.current;
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            if (!ctx) return;
-
-            ctx.fillStyle = BG_COLOR;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-
-            strokes.forEach(stroke => {
-                if (stroke.points.length < 2) return;
-
-                ctx.globalAlpha = stroke.brushOpacity;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.lineWidth = stroke.brushSize;
-                ctx.strokeStyle = stroke.brushColor;
-                ctx.shadowBlur = stroke.glow ? stroke.brushSize * 3 : 0;
-                ctx.shadowColor = stroke.glow ? stroke.brushColor : 'transparent';
-
-                for (let p = 1; p < stroke.points.length; p++) {
-                    drawStrokeSegment(ctx, stroke, stroke.points[p - 1], stroke.points[p], cx, cy);
-                }
-            });
-        }
+        redrawStrokes: performRedraw
     }));
+
+    useEffect(() => {
+        performRedraw(strokes);
+    }, [strokes, performRedraw]);
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const handleWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            const isZoom = e.ctrlKey || e.metaKey;
+
+            if (isZoom) {
+                const zoomDelta = e.deltaY * -0.005;
+                const oldScale = viewport.current.scale;
+                let newScale = oldScale + zoomDelta;
+                newScale = Math.max(0.1, Math.min(newScale, 15));
+
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                viewport.current.x = mouseX - (mouseX - viewport.current.x) * (newScale / oldScale);
+                viewport.current.y = mouseY - (mouseY - viewport.current.y) * (newScale / oldScale);
+                viewport.current.scale = newScale;
+            } else {
+                viewport.current.x -= e.deltaX;
+                viewport.current.y -= e.deltaY;
+            }
+            requestAnimationFrame(() => performRedraw(strokes));
+        };
+
+        canvas.addEventListener('wheel', handleWheel, { passive: false });
+        return () => canvas.removeEventListener('wheel', handleWheel);
+    }, [performRedraw, strokes]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        if (ctx) {
-            ctx.fillStyle = BG_COLOR;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-    }, []);
+        performRedraw(strokes);
+    }, [performRedraw, strokes]);
 
     const getCoordinates = useCallback((e: React.MouseEvent | React.TouchEvent): Point => {
         const canvas = canvasRef.current;
@@ -113,7 +166,14 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ brushColor, brushSize, glow, m
         const rect = canvas.getBoundingClientRect();
         const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
         const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-        return { x: clientX - rect.left, y: clientY - rect.top };
+        
+        const rawX = clientX - rect.left;
+        const rawY = clientY - rect.top;
+        
+        return { 
+            x: (rawX - viewport.current.x) / viewport.current.scale, 
+            y: (rawY - viewport.current.y) / viewport.current.scale 
+        };
     }, []);
 
     const stopDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -134,6 +194,10 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ brushColor, brushSize, glow, m
         const ctx = canvas?.getContext('2d');
         if (!canvas || !ctx) return;
 
+        ctx.save();
+        ctx.translate(viewport.current.x, viewport.current.y);
+        ctx.scale(viewport.current.scale, viewport.current.scale);
+
         ctx.globalAlpha = brushOpacity;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -143,6 +207,8 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ brushColor, brushSize, glow, m
         ctx.shadowColor = glow ? brushColor : 'transparent';
 
         drawStrokeSegment(ctx, currentStroke.current, lastPos.current, currentPos, canvas.width / 2, canvas.height / 2);
+
+        ctx.restore();
 
         currentStroke.current.points.push(currentPos);
         lastPos.current = currentPos;

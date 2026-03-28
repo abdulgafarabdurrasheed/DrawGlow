@@ -96,6 +96,7 @@ function App() {
         glow={glow}
         mirror={mirror}
         symmetryCount={symmetryCount}
+        strokes={undoStack}
         onStrokeEnd={addStroke}
       />
       <GuidesOverlay
