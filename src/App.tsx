@@ -22,7 +22,7 @@ function App() {
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   const [showCursor, setShowCursor] = useState(false)
 
-  const { undoStack, undo, clearCanvas, saveState } = useUndoRedo(canvasHandle);
+  const { undoStack, undo, clearCanvas, addStroke } = useUndoRedo(canvasHandle);
   const { gallery, saveToGallery, deleteFromGallery } = useGallery(canvasHandle, symmetryCount, setToastMsg)
 
   const handleExport = useCallback(() => {
@@ -68,7 +68,7 @@ function App() {
         glow={glow}
         mirror={mirror}
         symmetryCount={symmetryCount}
-        onStrokeStart={saveState}
+        onStrokeEnd={addStroke}
       />
       <GuidesOverlay
         symmetryCount={symmetryCount}

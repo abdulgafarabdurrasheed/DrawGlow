@@ -1,50 +1,32 @@
 import { useState, useCallback } from 'react';
-import type { CanvasHandle } from '../components/Canvas';
+import type { CanvasHandle, Stroke } from '../components/Canvas';
 import { BG_COLOR } from '../lib/constants';
 
 export function useUndoRedo(canvasHandle: React.RefObject<CanvasHandle | null>) {
-    const [undoStack, setUndoStack] = useState<string[]>([]);
+    const [undoStack, setUndoStack] = useState<Stroke[]>([]);
 
-    const saveState = useCallback(() => {
-        const dataUrl = canvasHandle.current?.toDataURL();
-
-        if (dataUrl) {
-            setUndoStack((prev) => [...prev, dataUrl]);
-        }
-    }, [canvasHandle]);
+    const addStroke = useCallback((stroke: Stroke) => {
+         setUndoStack((prev) => [...prev, stroke]);
+    }, []);
 
     const undo = useCallback(() => {
         if (undoStack.length === 0) return;
 
-        const lastState = undoStack[undoStack.length - 1];
-        setUndoStack((prev) => prev.slice(0, -1));
+        const remainingStrokes = undoStack.slice(0, -1);
+        setUndoStack(remainingStrokes);
 
-        const canvas = canvasHandle.current?.getCanvas();
-
-        if (!canvas) return
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-
-        const img = new Image();
-        img.onload = () => {
-            ctx.fillStyle = BG_COLOR;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0);
-        };
-        img.src = lastState;
+        canvasHandle.current?.redrawStrokes(remainingStrokes);
     }, [undoStack, canvasHandle]);
 
     const clearCanvas = useCallback(() => {
-        saveState();
+        setUndoStack([]);
         const canvas = canvasHandle.current?.getCanvas();
-        if (!canvas) return;
+        const ctx = canvas?.getContext("2d");
+        if (canvas && ctx) {
+            ctx.fillStyle = BG_COLOR;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    }, [canvasHandle]);
 
-        const ctx = canvas.getContext("2d");
-
-        if (!ctx) return;
-        ctx.fillStyle = BG_COLOR;
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
-    }, [saveState, canvasHandle]);
-
-    return { undoStack, undo, clearCanvas, saveState }
+    return { undoStack, undo, clearCanvas, addStroke };
 }
