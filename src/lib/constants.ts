@@ -18,6 +18,7 @@ export const DEFAULTS = {
     glow: true,
     mirror: true,
     showGuides: true,
+    brushOpacity: 1,
 } as const;
 
 export const LIMITS = {

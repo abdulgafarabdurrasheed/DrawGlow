@@ -3,6 +3,7 @@ import ColorPicker from "./ColorPicker";
 import BrushSlider from "./BrushSlider";
 import SymmetryControl from "./SymmetryControl";
 import ToggleGroup from "./ToggleGroup";
+import OpacitySlider from "./OpacitySlider";
 
 interface Props {
   brushColor: string;
@@ -10,9 +11,11 @@ interface Props {
   symmetryCount: number;
   glow: boolean;
   mirror: boolean;
+  brushOpacity: number;
   showGuides: boolean;
   setBrushColor: (c: string) => void;
   setBrushSize: (s: number) => void;
+  setBrushOpacity: (o: number) => void;
   setSymmetryCount: (n: number) => void;
   setGlow: (g: boolean) => void;
   setMirror: (m: boolean) => void;
@@ -30,6 +33,7 @@ export default function ToolPalette(props: Props) {
           onChange={props.setBrushColor}
         />
         <BrushSlider value={props.brushSize} onChange={props.setBrushSize} />
+        <OpacitySlider value={props.brushOpacity} onChange={props.setBrushOpacity} />
         <SymmetryControl
           count={props.symmetryCount}
           onChange={props.setSymmetryCount}

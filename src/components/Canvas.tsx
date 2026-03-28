@@ -10,6 +10,7 @@ export interface Stroke {
     glow: boolean;
     mirror: boolean;
     symmetryCount: number;
+    brushOpacity: number;
 }
 
 export interface CanvasHandle {
@@ -25,10 +26,11 @@ interface Props {
     glow: boolean;
     mirror: boolean;
     symmetryCount: number;
+    brushOpacity: number;
     onStrokeEnd: (stroke: Stroke) => void;
 }
 
-const Canvas = forwardRef<CanvasHandle, Props>(({ brushColor, brushSize, glow, mirror, symmetryCount, onStrokeEnd }, ref) => {
+const Canvas = forwardRef<CanvasHandle, Props>(({ brushColor, brushSize, glow, mirror, symmetryCount, brushOpacity, onStrokeEnd }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawing = useRef(false);
     const lastPos = useRef<Point>({ x: 0, y: 0 });
@@ -77,7 +79,8 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ brushColor, brushSize, glow, m
 
             strokes.forEach(stroke => {
                 if (stroke.points.length < 2) return;
-                
+
+                ctx.globalAlpha = stroke.brushOpacity;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
                 ctx.lineWidth = stroke.brushSize;
@@ -131,6 +134,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ brushColor, brushSize, glow, m
         const ctx = canvas?.getContext('2d');
         if (!canvas || !ctx) return;
 
+        ctx.globalAlpha = brushOpacity;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.lineWidth = brushSize;
@@ -142,7 +146,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ brushColor, brushSize, glow, m
 
         currentStroke.current.points.push(currentPos);
         lastPos.current = currentPos;
-    }, [brushSize, brushColor, getCoordinates, glow, drawStrokeSegment]);
+    }, [brushSize, brushColor, brushOpacity, getCoordinates, glow, drawStrokeSegment]);
 
     const startDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
         e.preventDefault();
@@ -152,9 +156,9 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ brushColor, brushSize, glow, m
         
         currentStroke.current = {
             points: [startPos],
-            brushColor, brushSize, glow, mirror, symmetryCount
+            brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount
         };
-    }, [getCoordinates, brushColor, brushSize, glow, mirror, symmetryCount]);
+    }, [getCoordinates, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount]);
 
     return (
         <canvas

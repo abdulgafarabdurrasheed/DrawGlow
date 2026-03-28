@@ -21,20 +21,47 @@ function App() {
   const [toastMsg, setToastMsg] = useState("");
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   const [showCursor, setShowCursor] = useState(false)
+  const [brushOpacity, setBrushOpacity] = useState<number>(DEFAULTS.brushOpacity || 1);
 
   const { undoStack, undo, clearCanvas, addStroke } = useUndoRedo(canvasHandle);
   const { gallery, saveToGallery, deleteFromGallery } = useGallery(canvasHandle, symmetryCount, setToastMsg)
 
-  const handleExport = useCallback(() => {
+    const handleExport = useCallback(() => {
     const canvas = canvasHandle.current?.getCanvas();
     if (!canvas) return;
 
-    const link = document.createElement("a");
-    link.download = `drawglow_${Date.now()}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-    setToastMsg("Masterpiece Exported! 🎨");
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        setToastMsg("Export failed!");
+        return;
+      }
+
+      const fileName = `drawglow_${Date.now()}.png`;
+      const file = new File([blob], fileName, { type: "image/png" });
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({
+          title: 'My Masterpiece',
+          files: [file]
+        }).then(() => {
+          //
+        }).catch(() => {
+          //
+        });
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = fileName;
+      link.href = url;
+      link.click();
+      
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+      setToastMsg("Masterpiece Exported! 🎨");
+    }, 'image/png');
   }, []);
+
 
   useShortcuts({
     undo,
@@ -65,6 +92,7 @@ function App() {
         ref={canvasHandle}
         brushColor={brushColor}
         brushSize={brushSize}
+        brushOpacity={brushOpacity}
         glow={glow}
         mirror={mirror}
         symmetryCount={symmetryCount}
@@ -86,12 +114,14 @@ function App() {
       <ToolPalette
         brushColor={brushColor}
         brushSize={brushSize}
+        brushOpacity={brushOpacity}
         symmetryCount={symmetryCount}
         glow={glow}
         mirror={mirror}
         showGuides={showGuides}
         setBrushColor={setBrushColor}
         setBrushSize={setBrushSize}
+        setBrushOpacity={setBrushOpacity}
         setSymmetryCount={setSymmetryCount}
         setGlow={setGlow}
         setMirror={setMirror}
