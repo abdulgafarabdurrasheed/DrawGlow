@@ -19,6 +19,7 @@ export const DEFAULTS = {
     mirror: true,
     showGuides: true,
     brushOpacity: 1,
+    brushType: 'solid',
 } as const;
 
 export const LIMITS = {
@@ -28,3 +29,5 @@ export const LIMITS = {
     minBrush: 1,
     maxBrush: 15,
 } as const
+
+export type BrushType = 'solid' | 'particles' | 'pulse'

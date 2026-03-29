@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { DEFAULTS } from "./lib/constants";
+import { DEFAULTS, type BrushType } from "./lib/constants";
 import Canvas, { type CanvasHandle } from "./components/Canvas";
 import TopBar from "./components/TopBar";
 import ToolPalette from "./components/ToolPalette";
@@ -22,7 +22,7 @@ function App() {
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   const [showCursor, setShowCursor] = useState(false)
   const [brushOpacity, setBrushOpacity] = useState<number>(DEFAULTS.brushOpacity || 1);
-
+  const [brushType, setBrushType] = useState<BrushType>(DEFAULTS.brushType);
   const { undoStack, undo, clearCanvas, addStroke } = useUndoRedo(canvasHandle);
   const { gallery, saveToGallery, deleteFromGallery } = useGallery(canvasHandle, symmetryCount, setToastMsg)
 
@@ -91,6 +91,7 @@ function App() {
       <Canvas
         ref={canvasHandle}
         brushColor={brushColor}
+        brushType={brushType}
         brushSize={brushSize}
         brushOpacity={brushOpacity}
         glow={glow}
@@ -114,6 +115,7 @@ function App() {
       />
       <ToolPalette
         brushColor={brushColor}
+        brushType={brushType}
         brushSize={brushSize}
         brushOpacity={brushOpacity}
         symmetryCount={symmetryCount}
@@ -121,6 +123,7 @@ function App() {
         mirror={mirror}
         showGuides={showGuides}
         setBrushColor={setBrushColor}
+        setBrushType={setBrushType}
         setBrushSize={setBrushSize}
         setBrushOpacity={setBrushOpacity}
         setSymmetryCount={setSymmetryCount}

@@ -12,6 +12,7 @@ interface Props {
   glow: boolean;
   mirror: boolean;
   brushOpacity: number;
+  brushType: string;
   showGuides: boolean;
   setBrushColor: (c: string) => void;
   setBrushSize: (s: number) => void;
@@ -20,6 +21,7 @@ interface Props {
   setGlow: (g: boolean) => void;
   setMirror: (m: boolean) => void;
   setShowGuides: (s: boolean) => void;
+  setBrushType: (b: any) => void;
 }
 
 export default function ToolPalette(props: Props) {
@@ -34,6 +36,15 @@ export default function ToolPalette(props: Props) {
         />
         <BrushSlider value={props.brushSize} onChange={props.setBrushSize} />
         <OpacitySlider value={props.brushOpacity} onChange={props.setBrushOpacity} />
+        <select
+          value={props.brushType}
+          onChange={(e) => props.setBrushType(e.target.value)}
+          className="bg-zinc-800 text-white text-sm px-3 py-1.5 rounded-xl border border-zinc-700/50 outline-none cursor-pointer hover:bg-zinc-700 transition"
+        >
+          <option value="solid">Solid Brush</option>
+          <option value="particles">Particles</option>
+          <option value="pulse">Pulse Tube</option>
+        </select>
         <SymmetryControl
           count={props.symmetryCount}
           onChange={props.setSymmetryCount}

@@ -11,6 +11,7 @@ export interface Stroke {
     glow: boolean;
     mirror: boolean;
     symmetryCount: number;
+    brushType: string;
 }
 
 export interface CanvasHandle {
@@ -28,10 +29,11 @@ interface Props {
     glow: boolean;
     mirror: boolean;
     symmetryCount: number;
+    brushType: string;
     onStrokeEnd: (stroke: Stroke) => void;
 }
 
-const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, onStrokeEnd }, ref) => {
+const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, brushType, onStrokeEnd }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawing = useRef(false);
     const lastPos = useRef<Point>({ x: 0, y: 0 });
@@ -46,18 +48,50 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
 
         for (let i = 0; i < stroke.symmetryCount; i++) {
             ctx.rotate(angleStep);
-            ctx.beginPath();
-            ctx.moveTo(lastP.x - cx, lastP.y - cy);
-            ctx.lineTo(currP.x - cx, currP.y - cy);
-            ctx.stroke();
+
+            const drawPath = (from: Point, to: Point) => {
+                if (stroke.brushType === 'solid') {
+                    ctx.lineWidth = stroke.brushSize;
+                    ctx.beginPath();
+                    ctx.moveTo(from.x - cx, from.y - cy);
+                    ctx.lineTo(to.x - cx, to.y - cy);
+                    ctx.stroke();
+                } else if (stroke.brushType === 'particles') {
+                    const dx = to.x - from.x;
+                    const dy = to.y - from.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    const steps = Math.max(1, Math.floor(dist / (stroke.brushSize * 0.5)));
+                    
+                    for (let s=0; s<steps; s++) {
+                        const px = from.x + (dx * s / steps) - cx;
+                        const py = from.y + (dy * s / steps) - cy;
+                        const sx = (Math.random() - 0.5) * stroke.brushSize * 5;
+                        const sy = (Math.random() - 0.5) * stroke.brushSize * 5;
+
+                        ctx.beginPath();
+                        ctx.arc(px + sx, py + sy, stroke.brushSize * (Math.random() * 0.5 + 0.2), 0, Math.PI * 2)
+                        ctx.fill();
+                    }
+                }
+                else if (stroke.brushType === 'pulse') {
+                    const dx = to.x - from.x;
+                    const dy = to.y - from.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+
+                    const pulseThickness = stroke.brushSize + Math.min(dist * 0.8, stroke.brushSize * 4)
+                    ctx.lineWidth = pulseThickness;
+                    ctx.beginPath();
+                    ctx.moveTo(from.x - cx, from.y - cy);
+                    ctx.lineTo(to.x - cx, to.y - cy);
+                    ctx.stroke();
+                }
+            };
+            drawPath(lastP, currP);
 
             if (stroke.mirror) {
                 ctx.save();
                 ctx.scale(-1, 1);
-                ctx.beginPath();
-                ctx.moveTo(lastP.x - cx, lastP.y - cy);
-                ctx.lineTo(currP.x - cx, currP.y - cy);
-                ctx.stroke();
+                drawPath(lastP, currP);
                 ctx.restore();
             }
         }
@@ -86,6 +120,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
             ctx.lineJoin = 'round';
             ctx.lineWidth = stroke.brushSize;
             ctx.strokeStyle = stroke.brushColor;
+            ctx.fillStyle = stroke.brushColor;
             ctx.shadowBlur = stroke.glow ? stroke.brushSize * 3 : 0;
             ctx.shadowColor = stroke.glow ? stroke.brushColor : 'transparent';
 
@@ -203,6 +238,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
         ctx.lineJoin = 'round';
         ctx.lineWidth = brushSize;
         ctx.strokeStyle = brushColor;
+        ctx.fillStyle = brushColor;
         ctx.shadowBlur = glow ? brushSize * 3 : 0;
         ctx.shadowColor = glow ? brushColor : 'transparent';
 
@@ -212,7 +248,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
 
         currentStroke.current.points.push(currentPos);
         lastPos.current = currentPos;
-    }, [brushSize, brushColor, brushOpacity, getCoordinates, glow, drawStrokeSegment]);
+    }, [brushSize, brushType, brushColor, brushOpacity, getCoordinates, glow, drawStrokeSegment]);
 
     const startDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
         e.preventDefault();
@@ -222,9 +258,9 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
         
         currentStroke.current = {
             points: [startPos],
-            brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount
+            brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, brushType
         };
-    }, [getCoordinates, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount]);
+    }, [getCoordinates, brushType, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount]);
 
     return (
         <canvas
