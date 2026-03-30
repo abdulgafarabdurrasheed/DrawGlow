@@ -8,6 +8,11 @@ import GuidesOverlay from "./components/GuidesOverlay";
 import { useUndoRedo } from "./hooks/useUndoRedo";
 import { useGallery } from "./hooks/useGallery";
 import { useShortcuts } from "./hooks/useShortcuts";
+import LayersPanel from "./components/LayersPanel";
+import { useMemo } from "react";
+
+export interface Layer { id: string; name: string; visible: boolean; }
+
 
 function App() {
   const canvasHandle = useRef<CanvasHandle>(null);
@@ -23,8 +28,25 @@ function App() {
   const [showCursor, setShowCursor] = useState(false)
   const [brushOpacity, setBrushOpacity] = useState<number>(DEFAULTS.brushOpacity || 1);
   const [brushType, setBrushType] = useState<BrushType>(DEFAULTS.brushType);
+  const [layers, setLayers] = useState<Layer[]>([{ id: 'layer-1', name: 'Background', visible: true }]);
+  const [activeLayerId, setActiveLayerId] = useState('layer-1');
   const { undoStack, undo, clearCanvas, addStroke } = useUndoRedo(canvasHandle);
   const { gallery, saveToGallery, deleteFromGallery } = useGallery(canvasHandle, symmetryCount, setToastMsg)
+
+  const visibleStrokes = useMemo(() => {
+    const layerMap = new Map(layers.map((l, i) => [l.id, { index: i, visible: l.visible }]));
+    
+    const filtered = undoStack.filter(s => {
+        const l = layerMap.get(s.layerId || 'layer-1');
+        return l ? l.visible : true;
+    });
+    return [...filtered].sort((a, b) => {
+        const idxA = layerMap.get(a.layerId || 'layer-1')?.index ?? 0;
+        const idxB = layerMap.get(b.layerId || 'layer-1')?.index ?? 0;
+        return idxB - idxA; 
+    });
+  }, [undoStack, layers]);
+
 
     const handleExport = useCallback(() => {
     const canvas = canvasHandle.current?.getCanvas();
@@ -97,13 +119,20 @@ function App() {
         glow={glow}
         mirror={mirror}
         symmetryCount={symmetryCount}
-        strokes={undoStack}
+        strokes={visibleStrokes}
+        activeLayerId={activeLayerId}
         onStrokeEnd={addStroke}
       />
       <GuidesOverlay
         symmetryCount={symmetryCount}
         mirror={mirror}
         visible={showGuides}
+      />
+      <LayersPanel 
+        layers={layers} 
+        activeLayerId={activeLayerId} 
+        setLayers={setLayers} 
+        setActiveLayerId={setActiveLayerId} 
       />
       <TopBar
         undoDisabled={undoStack.length === 0}

@@ -12,6 +12,7 @@ export interface Stroke {
     mirror: boolean;
     symmetryCount: number;
     brushType: string;
+    layerId: string;
 }
 
 export interface CanvasHandle {
@@ -30,10 +31,11 @@ interface Props {
     mirror: boolean;
     symmetryCount: number;
     brushType: string;
+    activeLayerId: string;
     onStrokeEnd: (stroke: Stroke) => void;
 }
 
-const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, brushType, onStrokeEnd }, ref) => {
+const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, brushType, activeLayerId, onStrokeEnd }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawing = useRef(false);
     const lastPos = useRef<Point>({ x: 0, y: 0 });
@@ -248,7 +250,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
 
         currentStroke.current.points.push(currentPos);
         lastPos.current = currentPos;
-    }, [brushSize, brushType, brushColor, brushOpacity, getCoordinates, glow, drawStrokeSegment]);
+    }, [brushSize, brushType, brushColor, brushOpacity, getCoordinates, glow, drawStrokeSegment, activeLayerId]);
 
     const startDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
         e.preventDefault();
@@ -258,9 +260,9 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
         
         currentStroke.current = {
             points: [startPos],
-            brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, brushType
+            brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, brushType, layerId:activeLayerId
         };
-    }, [getCoordinates, brushType, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount]);
+    }, [getCoordinates, brushType, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, activeLayerId]);
 
     return (
         <canvas
