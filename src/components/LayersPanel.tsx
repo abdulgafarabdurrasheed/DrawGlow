@@ -19,16 +19,16 @@ export default function LayersPanel({ layers, activeLayerId, setLayers, setActiv
   };
 
   return (
-    <div className="absolute top-20 right-4 bg-zinc-900/80 backdrop-blur-xl border border-zinc-700/50 p-3 rounded-2xl shadow-2xl w-48 z-10 pointer-events-auto">
+    <div className="absolute top-20 right-4 bg-zinc-950 border border-zinc-800 p-3 rounded-lg shadow-xl shadow-black/50 w-48 z-10 pointer-events-auto">
       <div className="flex justify-between items-center mb-2 pb-2 border-b border-zinc-700">
         <h3 className="text-white text-xs font-bold tracking-widest text-zinc-400">LAYERS</h3>
         <button onClick={addLayer} className="text-zinc-400 hover:text-white text-lg font-bold transition-colors">+</button>
       </div>
       <div className="flex flex-col gap-1 max-h-60 overflow-y-auto scrollbar-hide">
         {layers.map(layer => (
-          <div 
+          <div
             key={layer.id} 
-            className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${activeLayerId === layer.id ? 'bg-zinc-700/80 ring-1 ring-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'hover:bg-zinc-800'}`}
+            className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors ${activeLayerId === layer.id ? 'bg-zinc-800 border-l-2 border-cyan-500' : 'hover:bg-zinc-900 border-l-2 border-transparent'}`}
             onClick={() => setActiveLayerId(layer.id)}
           >
             <span className="text-sm text-zinc-300 truncate font-medium">{layer.name}</span>

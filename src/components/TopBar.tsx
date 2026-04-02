@@ -1,4 +1,4 @@
-import { Download, Undo, Trash2, Sparkles, Save, Image } from "lucide-react";
+import { Download, Undo, Trash2, Save, Image } from "lucide-react";
 
 interface Props {
   undoDisabled: boolean;
@@ -35,28 +35,28 @@ export default function TopBar({
         <button
           onClick={onUndo}
           disabled={undoDisabled}
-          className="p-2.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 disabled:opacity-30 disabled:hover:bg-zinc-900/80 backdrop-blur-md transition-all border border-zinc-800"
+          className="p-2.5 rounded-md bg-zinc-950 hover:bg-zinc-800 text-zinc-300 disabled:opacity-30 disabled:hover:bg-zinc-900/80 transition-all border border-zinc-800"
           title="Undo (Ctrl+Z)"
         >
           <Undo className="w-5 h-5" />
         </button>
         <button
           onClick={onClear}
-          className="p-2.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 backdrop-blur-md transition-all border border-zinc-800"
+          className="p-2.5 rounded-md bg-zinc-950 hover:bg-zinc-800 text-zinc-300 transition-all border border-zinc-800"
           title="Clear Canvas"
         >
           <Trash2 className="w-5 h-5" />
         </button>
         <button
           onClick={onSave}
-          className="p-2.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 backdrop-blur-md transition-all border border-zinc-800"
+          className="p-2.5 rounded-md bg-zinc-950 hover:bg-zinc-800 text-zinc-300 transition-all border border-zinc-800"
           title="Save to Gallery"
         >
           <Save className="w-5 h-5" />
         </button>
         <button
           onClick={onGallery}
-          className="p-2.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 backdrop-blur-md transition-all border border-zinc-800"
+          className="p-2.5 rounded-md bg-zinc-950 hover:bg-zinc-800 text-zinc-300 transition-all border border-zinc-800"
           title="Open Gallery"
         >
           <Image className="w-5 h-5" />
@@ -78,7 +78,7 @@ export default function TopBar({
 
         <button
           onClick={onExport}
-          className="px-4 py-2.5 rounded-xl bg-white text-black hover:bg-gray-200 font-semibold flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all transform hover:scale-105"
+          className="px-4 py-2 rounded-md bg-zinc-800 hover:bg-zinc-700 text-white font-medium flex items-center gap-2 border border-zinc-700 transition-colors"
         >
           <Download className="w-4 h-4" />
           <span className="hidden sm:inline">Export PNG</span>

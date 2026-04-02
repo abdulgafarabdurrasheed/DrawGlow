@@ -27,7 +27,7 @@ interface Props {
 export default function ToolPalette(props: Props) {
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 pointer-events-auto">
-      <div className="flex items-center gap-4 bg-zinc-900/80 backdrop-blur-xl border border-zinc-700/50 p-3 rounded-2xl shadow-2xl max-w-[90vw] overflow-x-auto scrollbar-hide">
+      <div className="flex items-center gap-4 bg-zinc-950 border border-zinc-800 p-3 rounded-lg shadow-xl shadow-black/50 overflow-x-auto scrollbar-hide max-w-[90vw]">
         <ColorPicker
           colors={COLORS}
           activeColor={props.brushColor}
