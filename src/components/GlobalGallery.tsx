@@ -1,13 +1,22 @@
 import type { GlobalArtwork } from "../hooks/useGlobalGallery";
+import { useState } from "react";
+import { Heart, Trash2 } from "lucide-react";
 
 interface Props {
   artworks: GlobalArtwork[];
   isLoading: boolean;
+  currentUser: any;
   onRefresh: () => void;
   onClose: () => void;
+  onLike: (id: string, currentLikes: string[]) => void
+  onDelete: (id: string) => void
 }
 
-export default function GlobalGallery({ artworks, isLoading, onRefresh, onClose }: Props) {
+export default function GlobalGallery({ artworks, isLoading, currentUser, onRefresh, onClose, onLike, onDelete }: Props) {
+  const [activeTab, setActiveTab] = useState<'all' | 'mine'>('all');
+
+  const displayedArtworks = activeTab === 'mine' && currentUser ? artworks.filter(art => art.authorId === currentUser.uid) : artworks;
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-8">
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-6xl max-h-full flex flex-col shadow-2xl overflow-hidden">
@@ -20,7 +29,23 @@ export default function GlobalGallery({ artworks, isLoading, onRefresh, onClose 
             <p className="text-zinc-400 text-sm mt-1">Discover mandalas created by artists worldwide.</p>
           </div>
           <div className="flex items-center gap-4">
-            <button 
+              {currentUser && (
+                <div className="flex bg-zinc-800 rounded-lg p-1 mr-2 border border-zinc-700">
+                  <button 
+                    onClick={() => setActiveTab('all')}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex transition-all ${activeTab === 'all' ? 'bg-zinc-700 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
+                  >
+                    Everyone
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('mine')}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex transition-all ${activeTab === 'mine' ? 'bg-zinc-700 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
+                  >
+                    My Artwork
+                  </button>
+                </div>
+              )}
+            <button
               onClick={onRefresh}
               disabled={isLoading}
               className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-black rounded-lg transition-colors flex items-center gap-2 text-sm disabled:opacity-50"
@@ -47,24 +72,53 @@ export default function GlobalGallery({ artworks, isLoading, onRefresh, onClose 
                <p>The gallery is empty! Be the first to publish.</p>
              </div>
           ) : (
-             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {artworks.map((art) => (
-                   <div key={art.id} className="group relative bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 hover:border-cyan-500/50 transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(6,182,212,0.15)]">
-                     <img 
-                       src={art.dataUrl} 
-                       alt="Community Artwork" 
-                       loading="lazy"
-                       className="w-full aspect-square object-cover"
-                     />
-                     <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
-                       <p className="text-white text-sm font-medium">{art.author}</p>
-                       <p className="text-zinc-400 text-xs mt-1">
-                         {new Date(art.createdAt).toLocaleDateString()}
-                       </p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6 pb-20">
+                {displayedArtworks.map((art) => {
+                   const hasLiked = currentUser && art.likes?.includes(currentUser.uid);
+                   const isOwner = currentUser && art.authorId === currentUser.uid;
+
+                   return (
+                     <div key={art.id} className="group relative bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 hover:border-cyan-500/50 transition-all hover:scale-[1.02]">
+                       <img 
+                         src={art.dataUrl} 
+                         alt="Community Artwork" 
+                         loading="lazy"
+                         className="w-full aspect-square object-cover"
+                       />
+                       <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black via-black/90 to-transparent translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all flex justify-between items-end">
+                         
+                         <div>
+                           <p className="text-white text-sm font-bold tracking-wide">{art.author}</p>
+                           <p className="text-zinc-400 text-xs mt-1">
+                             {new Date(art.createdAt).toLocaleDateString()}
+                           </p>
+                         </div>
+
+                         <div className="flex items-center gap-2">
+                           {isOwner && (
+                             <button 
+                               onClick={(e) => { e.stopPropagation(); onDelete(art.id); }}
+                               className="p-1.5 bg-black/50 text-zinc-400 hover:text-red-500 hover:bg-black rounded-lg transition-colors border border-transparent hover:border-red-500/50"
+                               title="Delete your artwork"
+                             >
+                               <Trash2 className="w-4 h-4" />
+                             </button>
+                           )}
+                           <button 
+                             onClick={(e) => { e.stopPropagation(); onLike(art.id, art.likes || []); }}
+                             className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-black/50 border transition-colors ${hasLiked ? 'text-red-500 border-red-500/50' : 'text-zinc-400 border-transparent hover:bg-black'}`}
+                           >
+                             <Heart className={`w-4 h-4 ${hasLiked ? 'fill-current' : ''}`} />
+                             <span className="text-xs font-bold">{art.likes?.length || 0}</span>
+                           </button>
+                         </div>
+
+                       </div>
                      </div>
-                   </div>
-                ))}
+                   );
+                })}
              </div>
+
           )}
         </div>
       </div>
