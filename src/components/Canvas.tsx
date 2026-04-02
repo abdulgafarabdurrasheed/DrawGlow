@@ -213,8 +213,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
         };
     }, []);
 
-    const stopDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-        e.preventDefault();
+    const stopDrawing = useCallback((e: any) => {
         if (isDrawing.current && currentStroke.current && currentStroke.current.points.length > 1) {
             onStrokeEnd(currentStroke.current);
         }
@@ -264,6 +263,18 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
         };
     }, [getCoordinates, brushType, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, activeLayerId]);
 
+    useEffect(() => {
+        const handleGlobalUp = (e: MouseEvent | TouchEvent) => stopDrawing(e);
+
+        window.addEventListener('mouseup', handleGlobalUp);
+        window.addEventListener('touchend', handleGlobalUp);
+
+        return () => {
+            window.removeEventListener('mouseup', handleGlobalUp);
+            window.removeEventListener('touchend', handleGlobalUp);
+        };
+    }, [stopDrawing]);
+
     return (
         <canvas
             ref={canvasRef}
@@ -271,12 +282,8 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
             style={{ touchAction: 'none' }}
             onMouseDown={startDrawing}
             onMouseMove={draw}
-            onMouseUp={stopDrawing}
-            onMouseOut={stopDrawing}
             onTouchStart={startDrawing}
             onTouchMove={draw}
-            onTouchEnd={stopDrawing}
-            onTouchCancel={stopDrawing}
         />
     );
 });

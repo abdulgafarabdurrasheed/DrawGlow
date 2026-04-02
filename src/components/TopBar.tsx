@@ -26,10 +26,7 @@ export default function TopBar({
   return (
     <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 pointer-events-none">
       <div className="flex items-center gap-2 pointer-events-auto">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-          <Sparkles className="text-white w-5 h-5" />
-        </div>
-        <h1 className="text-xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+        <h1 className="text-xl font-bold tracking-wider bg-clip-text text-transparent text-white">
           DrawGlow
         </h1>
       </div>
