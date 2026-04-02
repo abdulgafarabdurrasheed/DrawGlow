@@ -1,4 +1,5 @@
 import { COLORS } from "../lib/constants";
+import { useState } from "react";
 import ColorPicker from "./ColorPicker";
 import BrushSlider from "./BrushSlider";
 import SymmetryControl from "./SymmetryControl";
@@ -25,9 +26,31 @@ interface Props {
 }
 
 export default function ToolPalette(props: Props) {
+
+  const [isExpanded, setIsExpanded] = useState(true); 
+    if (!isExpanded) {
+    return (
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 pointer-events-auto">
+        <button 
+          onClick={() => setIsExpanded(true)}
+          className="bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white px-5 py-2.5 rounded-full font-medium shadow-xl shadow-black/50 transition-colors flex items-center gap-2"
+        >
+          Open Tools
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 pointer-events-auto">
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 pointer-events-auto flex flex-col items-center gap-2">
+      <button 
+        onClick={() => setIsExpanded(false)}
+        className="w-16 h-6 bg-zinc-950 border border-zinc-800 rounded-full flex items-center justify-center text-zinc-500 hover:text-white transition-colors shadow-lg shadow-black/50"
+      >
+        ▼
+      </button>
       <div className="flex items-center gap-4 bg-zinc-950 border border-zinc-800 p-3 rounded-lg shadow-xl shadow-black/50 overflow-x-auto scrollbar-hide max-w-[90vw]">
+        
         <ColorPicker
           colors={COLORS}
           activeColor={props.brushColor}
