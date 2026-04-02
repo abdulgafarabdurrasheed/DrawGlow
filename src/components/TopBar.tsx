@@ -2,20 +2,26 @@ import { Download, Undo, Trash2, Sparkles, Save, Image } from "lucide-react";
 
 interface Props {
   undoDisabled: boolean;
+  isPublishing: boolean;
   onUndo: () => void;
   onClear: () => void;
   onExport: () => void;
   onSave: () => void;
   onGallery: () => void;
+  onPublishArtwork?: () => void;
+  onOpenGlobalGallery?: () => void;
 }
 
 export default function TopBar({
   undoDisabled,
+  isPublishing,
   onUndo,
   onClear,
   onExport,
   onSave,
   onGallery,
+  onPublishArtwork,
+  onOpenGlobalGallery,
 }: Props) {
   return (
     <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 pointer-events-none">
@@ -58,6 +64,21 @@ export default function TopBar({
         >
           <Image className="w-5 h-5" />
         </button>
+        <div className="h-6 w-px bg-zinc-700/50 mx-2"></div>
+          <button
+            onClick={onPublishArtwork}
+            disabled={isPublishing}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {isPublishing ? '...' : 'Done'} Publish
+          </button>
+          <button
+            onClick={onOpenGlobalGallery}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-purple-400 bg-purple-500/10 hover:bg-purple-500/20 rounded-lg transition-colors"
+          >
+            World Gallery
+          </button>
+
         <button
           onClick={onExport}
           className="px-4 py-2.5 rounded-xl bg-white text-black hover:bg-gray-200 font-semibold flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all transform hover:scale-105"

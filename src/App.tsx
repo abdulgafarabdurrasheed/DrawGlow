@@ -10,6 +10,8 @@ import { useGallery } from "./hooks/useGallery";
 import { useShortcuts } from "./hooks/useShortcuts";
 import LayersPanel from "./components/LayersPanel";
 import { useMemo } from "react";
+import GlobalGallery from "./components/GlobalGallery";
+import { useGlobalGallery } from "./hooks/useGlobalGallery";
 
 export interface Layer { id: string; name: string; visible: boolean; }
 
@@ -32,6 +34,15 @@ function App() {
   const [activeLayerId, setActiveLayerId] = useState('layer-1');
   const { undoStack, undo, clearCanvas, addStroke } = useUndoRedo(canvasHandle);
   const { gallery, saveToGallery, deleteFromGallery } = useGallery(canvasHandle, symmetryCount, setToastMsg)
+  const [showGlobalGallery, setShowGlobalGallery] = useState(false);
+
+
+  const { globalArtworks, publishArtwork, fetchGlobalGallery, isPublishing, isLoading } = useGlobalGallery(canvasHandle, setToastMsg);
+  const openGlobalGallery = () => {
+      setShowGlobalGallery(true);
+      fetchGlobalGallery();
+  };
+
 
   const visibleStrokes = useMemo(() => {
     const layerMap = new Map(layers.map((l, i) => [l.id, { index: i, visible: l.visible }]));
@@ -54,7 +65,7 @@ function App() {
 
     canvas.toBlob((blob) => {
       if (!blob) {
-        setToastMsg("Export failed!");
+        setToastMsg("Export failed!")
         return;
       }
 
@@ -141,6 +152,9 @@ function App() {
         onExport={handleExport}
         onSave={saveToGallery}
         onGallery={() => setShowGallery(true)}
+        isPublishing={isPublishing}
+        onPublishArtwork={publishArtwork}
+        onOpenGlobalGallery={openGlobalGallery}
       />
       <ToolPalette
         brushColor={brushColor}
@@ -225,6 +239,16 @@ function App() {
       </div>
     </div>
       )}
+
+      {showGlobalGallery && (
+        <GlobalGallery 
+          artworks={globalArtworks}
+          isLoading={isLoading}
+          onRefresh={fetchGlobalGallery}
+          onClose={() => setShowGlobalGallery(false)}
+        />
+      )}
+
 
       <style
         dangerouslySetInnerHTML={{
