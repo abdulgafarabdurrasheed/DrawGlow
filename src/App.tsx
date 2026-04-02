@@ -29,6 +29,7 @@ function App() {
   const [toastMsg, setToastMsg] = useState("");
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   const [showCursor, setShowCursor] = useState(false)
+  const { user, loginWithGoogle, logout } = useAuth();
   const [brushOpacity, setBrushOpacity] = useState<number>(DEFAULTS.brushOpacity || 1);
   const [brushType, setBrushType] = useState<BrushType>(DEFAULTS.brushType);
   const [layers, setLayers] = useState<Layer[]>([{ id: 'layer-1', name: 'Background', visible: true }]);
@@ -36,9 +37,8 @@ function App() {
   const { undoStack, undo, clearCanvas, addStroke } = useUndoRedo(canvasHandle);
   const { gallery, saveToGallery, deleteFromGallery } = useGallery(canvasHandle, symmetryCount, setToastMsg)
   const [showGlobalGallery, setShowGlobalGallery] = useState(false);
-  const { user, loginWithGoogle, logout } = useAuth();
 
-  const { globalArtworks, publishArtwork, fetchGlobalGallery, isPublishing, isLoading } = useGlobalGallery(canvasHandle, setToastMsg);
+  const { globalArtworks, publishArtwork, fetchGlobalGallery, isPublishing, isLoading, toggleLike, deleteGlobalArtwork } = useGlobalGallery(canvasHandle, setToastMsg, user);
   const openGlobalGallery = () => {
       setShowGlobalGallery(true);
       fetchGlobalGallery();
@@ -248,10 +248,14 @@ function App() {
         <GlobalGallery 
           artworks={globalArtworks}
           isLoading={isLoading}
+          currentUser={user}
           onRefresh={fetchGlobalGallery}
           onClose={() => setShowGlobalGallery(false)}
+          onLike={toggleLike}
+          onDelete={deleteGlobalArtwork}
         />
       )}
+
 
 
       <style
