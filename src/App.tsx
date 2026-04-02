@@ -12,6 +12,7 @@ import LayersPanel from "./components/LayersPanel";
 import { useMemo } from "react";
 import GlobalGallery from "./components/GlobalGallery";
 import { useGlobalGallery } from "./hooks/useGlobalGallery";
+import { useAuth } from "./hooks/useAuth";
 
 export interface Layer { id: string; name: string; visible: boolean; }
 
@@ -35,7 +36,7 @@ function App() {
   const { undoStack, undo, clearCanvas, addStroke } = useUndoRedo(canvasHandle);
   const { gallery, saveToGallery, deleteFromGallery } = useGallery(canvasHandle, symmetryCount, setToastMsg)
   const [showGlobalGallery, setShowGlobalGallery] = useState(false);
-
+  const { user, loginWithGoogle, logout } = useAuth();
 
   const { globalArtworks, publishArtwork, fetchGlobalGallery, isPublishing, isLoading } = useGlobalGallery(canvasHandle, setToastMsg);
   const openGlobalGallery = () => {
@@ -155,6 +156,9 @@ function App() {
         isPublishing={isPublishing}
         onPublishArtwork={publishArtwork}
         onOpenGlobalGallery={openGlobalGallery}
+        user={user}
+        onLogin={loginWithGoogle}
+        onLogout={logout}
       />
       <ToolPalette
         brushColor={brushColor}

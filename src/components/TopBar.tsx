@@ -3,6 +3,7 @@ import { Download, Undo, Trash2, Save, Image } from "lucide-react";
 interface Props {
   undoDisabled: boolean;
   isPublishing: boolean;
+  user?: any;
   onUndo: () => void;
   onClear: () => void;
   onExport: () => void;
@@ -10,11 +11,14 @@ interface Props {
   onGallery: () => void;
   onPublishArtwork?: () => void;
   onOpenGlobalGallery?: () => void;
+  onLogin?: () => void;
+  onLogout?: () => void;
 }
 
 export default function TopBar({
   undoDisabled,
   isPublishing,
+  user,
   onUndo,
   onClear,
   onExport,
@@ -22,6 +26,8 @@ export default function TopBar({
   onGallery,
   onPublishArtwork,
   onOpenGlobalGallery,
+  onLogin,
+  onLogout,
 }: Props) {
   return (
     <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 pointer-events-none">
@@ -75,6 +81,24 @@ export default function TopBar({
           >
             World Gallery
           </button>
+
+        <div className="h-6 w-px bg-zinc-700/50 mx-2"></div>
+          {user ? (
+            <button
+              onClick={onLogout}
+              className="w-9 h09 rounded-full overflow-hidden border border-zinc-700 hover:border-cyan-500 transition-colors"
+              title={`Logout ${user.displayName}`}
+            >
+              <img src={user.photoURL || ''} alt="Profile" className="w-full h-full object-cover" />
+            </button>
+          ) : (
+            <button
+              onClick={onLogin}
+              className="px-3 py-1.5 text-sm font-medium text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 flex items-center gap-2 rounded-md transition-colors"
+            >
+              Login
+            </button>
+          )}
 
         <button
           onClick={onExport}
