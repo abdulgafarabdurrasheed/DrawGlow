@@ -52,7 +52,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
             ctx.rotate(angleStep);
 
             const drawPath = (from: Point, to: Point) => {
-                if (stroke.brushType === 'solid') {
+                if (stroke.brushType === 'solid' || stroke.brushType === 'eraser') {
                     ctx.lineWidth = stroke.brushSize;
                     ctx.beginPath();
                     ctx.moveTo(from.x - cx, from.y - cy);
@@ -121,10 +121,17 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             ctx.lineWidth = stroke.brushSize;
-            ctx.strokeStyle = stroke.brushColor;
-            ctx.fillStyle = stroke.brushColor;
-            ctx.shadowBlur = stroke.glow ? stroke.brushSize * 3 : 0;
-            ctx.shadowColor = stroke.glow ? stroke.brushColor : 'transparent';
+                if (stroke.brushType === 'eraser') {
+                    ctx.globalCompositeOperation = 'destination-out'
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
+                    ctx.shadowBlur = 0
+                } else {
+                    ctx.globalCompositeOperation = 'source-over'
+                    ctx.strokeStyle = stroke.brushColor;
+                    ctx.fillStyle = stroke.brushColor;
+                    ctx.shadowBlur = stroke.glow ? stroke.brushSize * 3 : 0;
+                    ctx.shadowColor = stroke.glow ? stroke.brushColor : 'transparent';
+                }
 
             for (let p = 1; p < stroke.points.length; p++) {
                 drawStrokeSegment(ctx, stroke, stroke.points[p - 1], stroke.points[p], cx, cy);
@@ -137,10 +144,17 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             ctx.lineWidth = tempStroke.brushSize;
-            ctx.strokeStyle = tempStroke.brushColor;
-            ctx.shadowBlur = tempStroke.glow ? tempStroke.brushSize * 3 : 0;
-            ctx.shadowColor = tempStroke.glow ? tempStroke.brushColor : 'transparent';
-            
+            if (tempStroke.brushType === 'eraser') {
+                    ctx.globalCompositeOperation = 'destination-out'
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
+                    ctx.shadowBlur = 0
+                } else {
+                    ctx.globalCompositeOperation = 'source-over'
+                    ctx.strokeStyle = tempStroke.brushColor;
+                    ctx.fillStyle = tempStroke.brushColor;
+                    ctx.shadowBlur = tempStroke.glow ? tempStroke.brushSize * 3 : 0;
+                    ctx.shadowColor = tempStroke.glow ? tempStroke.brushColor : 'transparent';
+                }
             for (let p = 1; p < tempStroke.points.length; p++) {
                 drawStrokeSegment(ctx, tempStroke, tempStroke.points[p - 1], tempStroke.points[p], cx, cy);
             }
@@ -238,10 +252,22 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.lineWidth = brushSize;
-        ctx.strokeStyle = brushColor;
-        ctx.fillStyle = brushColor;
-        ctx.shadowBlur = glow ? brushSize * 3 : 0;
-        ctx.shadowColor = glow ? brushColor : 'transparent';
+                ctx.globalAlpha = brushOpacity;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = brushSize;
+        
+        if (brushType === 'eraser') {
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.strokeStyle = 'rgba(0,0,0,1)';
+            ctx.shadowBlur = 0;
+        } else {
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = brushColor;
+            ctx.fillStyle = brushColor;
+            ctx.shadowBlur = glow ? brushSize * 3 : 0;
+            ctx.shadowColor = glow ? brushColor : 'transparent';
+        }
 
         drawStrokeSegment(ctx, currentStroke.current, lastPos.current, currentPos, canvas.width / 2, canvas.height / 2);
 

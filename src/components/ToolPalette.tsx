@@ -67,6 +67,7 @@ export default function ToolPalette(props: Props) {
           <option value="solid">Solid Brush</option>
           <option value="particles">Particles</option>
           <option value="pulse">Pulse Tube</option>
+          <option value="eraser">Eraser</option>
         </select>
         <SymmetryControl
           count={props.symmetryCount}

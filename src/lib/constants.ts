@@ -30,4 +30,4 @@ export const LIMITS = {
     maxBrush: 15,
 } as const
 
-export type BrushType = 'solid' | 'particles' | 'pulse'
+export type BrushType = 'solid' | 'particles' | 'pulse' | 'eraser' 
