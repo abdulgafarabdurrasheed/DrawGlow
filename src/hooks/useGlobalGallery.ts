@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { collection, addDoc, query, orderBy, limit, getDocs, doc, updateDoc, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { CanvasHandle } from '../components/Canvas';
-import { Lollipop } from 'lucide-react';
 
 export interface GlobalArtwork {
   id: string;
@@ -32,7 +31,7 @@ export function useGlobalGallery(
         artworks.push({ id: doc.id, ...doc.data() } as GlobalArtwork);
       });
       setGlobalArtworks(artworks);
-    } catch (error) {
+    } catch {
       setToastMsg("Failed to load community gallery.");
     } finally {
       setIsLoading(false);
@@ -62,7 +61,7 @@ export function useGlobalGallery(
       });
       setToastMsg("Masterpiece Published to the World!");
       if (globalArtworks.length > 0) fetchGlobalGallery();
-    } catch (error) {
+    } catch {
       setToastMsg("Failed to publish to the cloud.");
     } finally {
       setIsPublishing(false);
@@ -87,7 +86,7 @@ export function useGlobalGallery(
             }
             return art;
         }));
-    } catch(e) {
+    } catch {
         setToastMsg("Failed to update like.");
     }
   }, [user, setToastMsg]);
@@ -98,7 +97,7 @@ export function useGlobalGallery(
         await deleteDoc(doc(db, 'gallery', artworkId));
         setGlobalArtworks(prev => prev.filter(art => art.id !== artworkId));
         setToastMsg("Artwork deleted.");
-    } catch(e) {
+    } catch {
         setToastMsg("Failed to delete.");
     }
   }, [user, setToastMsg]);

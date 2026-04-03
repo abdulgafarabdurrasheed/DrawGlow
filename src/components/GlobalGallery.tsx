@@ -54,7 +54,7 @@ export default function GlobalGallery({ artworks, isLoading, currentUser, onRefr
             </button>
             <button 
               onClick={onClose}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
             >
               ✕
             </button>

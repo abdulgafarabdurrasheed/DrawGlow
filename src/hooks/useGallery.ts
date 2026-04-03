@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import type  { CanvasHandle } from "../components/Canvas";
-import { get, set as setIdb, update } from "idb-keyval";
+import { get, set as setIdb } from "idb-keyval";
 
 export interface GalleryItem {
     id: string;

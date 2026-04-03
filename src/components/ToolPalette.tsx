@@ -22,7 +22,7 @@ interface Props {
   setGlow: (g: boolean) => void;
   setMirror: (m: boolean) => void;
   setShowGuides: (s: boolean) => void;
-  setBrushType: (b: any) => void;
+  setBrushType: (b: string) => void;
 }
 
 export default function ToolPalette(props: Props) {

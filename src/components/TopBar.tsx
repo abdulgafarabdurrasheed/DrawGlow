@@ -86,7 +86,7 @@ export default function TopBar({
           {user ? (
             <button
               onClick={onLogout}
-              className="w-9 h09 rounded-full overflow-hidden border border-zinc-700 hover:border-cyan-500 transition-colors"
+              className="w-9 h-9 rounded-full overflow-hidden border border-zinc-700 hover:border-cyan-500 transition-colors"
               title={`Logout ${user.displayName}`}
             >
               <img src={user.photoURL || ''} alt="Profile" className="w-full h-full object-cover" />

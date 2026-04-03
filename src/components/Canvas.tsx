@@ -227,7 +227,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
         };
     }, []);
 
-    const stopDrawing = useCallback((e: any) => {
+    const stopDrawing = useCallback(() => {
         if (isDrawing.current && currentStroke.current && currentStroke.current.points.length > 1) {
             onStrokeEnd(currentStroke.current);
         }
@@ -252,10 +252,6 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.lineWidth = brushSize;
-                ctx.globalAlpha = brushOpacity;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.lineWidth = brushSize;
         
         if (brushType === 'eraser') {
             ctx.globalCompositeOperation = 'destination-out';
@@ -275,7 +271,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
 
         currentStroke.current.points.push(currentPos);
         lastPos.current = currentPos;
-    }, [brushSize, brushType, brushColor, brushOpacity, getCoordinates, glow, drawStrokeSegment, activeLayerId]);
+    }, [brushSize, brushType, brushColor, brushOpacity, getCoordinates, glow, drawStrokeSegment]);
 
     const startDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
         e.preventDefault();
@@ -290,7 +286,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
     }, [getCoordinates, brushType, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, activeLayerId]);
 
     useEffect(() => {
-        const handleGlobalUp = (e: MouseEvent | TouchEvent) => stopDrawing(e);
+        const handleGlobalUp = () => stopDrawing();
 
         window.addEventListener('mouseup', handleGlobalUp);
         window.addEventListener('touchend', handleGlobalUp);
