@@ -48,7 +48,7 @@ export default function GlobalGallery({ artworks, isLoading, currentUser, onRefr
             <button
               onClick={onRefresh}
               disabled={isLoading}
-              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-black rounded-lg transition-colors flex items-center gap-2 text-sm disabled:opacity-50"
+              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm disabled:opacity-50"
             >
               {isLoading ? 'Loading...' : 'Refresh Feed'}
             </button>
