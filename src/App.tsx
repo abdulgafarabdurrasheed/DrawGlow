@@ -60,6 +60,9 @@ function App() {
     });
   }, [undoStack, layers]);
 
+    const handleTimeLapse = () => {
+      canvasHandle.current?.playTimeLapse();
+    };
 
     const handleExport = useCallback(() => {
     const canvas = canvasHandle.current?.getCanvas();
@@ -161,6 +164,7 @@ function App() {
         user={user}
         onLogin={loginWithGoogle}
         onLogout={logout}
+        onTimeLapse={handleTimeLapse}
       />
       <ToolPalette
         brushColor={brushColor}

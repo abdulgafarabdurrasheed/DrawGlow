@@ -1,4 +1,4 @@
-import { Download, Undo, Trash2, Save, Image } from "lucide-react";
+import { Download, Undo, Trash2, Save, Image, Play } from "lucide-react";
 
 interface Props {
   undoDisabled: boolean;
@@ -13,6 +13,7 @@ interface Props {
   onOpenGlobalGallery?: () => void;
   onLogin?: () => void;
   onLogout?: () => void;
+  onTimeLapse?: () => void
 }
 
 export default function TopBar({
@@ -28,6 +29,7 @@ export default function TopBar({
   onOpenGlobalGallery,
   onLogin,
   onLogout,
+  onTimeLapse
 }: Props) {
   return (
     <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 pointer-events-none">
@@ -99,6 +101,14 @@ export default function TopBar({
               Login
             </button>
           )}
+
+          <button
+            onClick={onTimeLapse}
+            className="px-4 py-2 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white font-medium flex items-center gap-2 border border-cyan-500 transition-colors shadow-[0_0_15px_rgba(6,182,212,0.3)] animate-pulse"
+          >
+            <Play className="w-4 h-4 fill-current" />
+            <span className="hidden sm:inline">Timelapse</span>
+          </button>
 
         <button
           onClick={onExport}

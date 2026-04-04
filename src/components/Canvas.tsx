@@ -20,6 +20,7 @@ export interface CanvasHandle {
     getContext: () => CanvasRenderingContext2D | null;
     toDataURL: () => string;
     redrawStrokes: (strokes: Stroke[]) => void;
+    playTimeLapse: () => void
 }
 
 interface Props {
@@ -191,11 +192,55 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
         }
     }, [drawStrokeSegment, showGrid]);
 
+    const playTimeLapse = useCallback(async () => {
+        const canvas = canvasRef.current;
+        const ctx = canvas?.getContext('2d');
+        if (!canvas || !ctx) return;
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = BG_COLOR;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.translate(viewport.current.x, viewport.current.y)
+        ctx.scale(viewport.current.scale, viewport.current.scale);
+        const cx = canvas.width / 2
+        const cy = canvas.height / 2
+
+        for (let i = 0; i < strokes.length; i++) {
+            const stroke = strokes[i];
+            if (stroke.points.length < 2) continue;
+
+            ctx.globalAlpha = stroke.brushOpacity;
+            ctx.lineCap = 'round'
+            ctx.lineJoin = 'round'
+            ctx.lineWidth = stroke.brushSize;
+
+            if (stroke.brushType === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
+                ctx.shadowBlur = 0;
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = stroke.brushColor;
+                ctx.fillStyle = stroke.brushColor;
+                ctx.shadowBlur = stroke.glow ? stroke.brushSize * 3 : 0;
+                ctx.shadowColor = stroke.glow ? stroke.brushColor : 'transparent'
+            }
+
+            for (let p = 1; p < stroke.points.length; p++) {
+                drawStrokeSegment(ctx, stroke, stroke.points[p - 1], stroke.points[p], cx, cy);
+
+                await new Promise(r => requestAnimationFrame(r));
+            }
+        }
+    }, [strokes, drawStrokeSegment]);
+
     useImperativeHandle(ref, () => ({
         getCanvas: () => canvasRef.current,
         getContext: () => canvasRef.current?.getContext('2d') ?? null,
         toDataURL: () => canvasRef.current?.toDataURL() ?? '',
-        redrawStrokes: performRedraw
+        redrawStrokes: performRedraw,
+        playTimeLapse
     }));
 
     useEffect(() => {

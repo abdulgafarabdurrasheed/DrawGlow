@@ -23,7 +23,7 @@ interface Props {
   setGlow: (g: boolean) => void;
   setMirror: (m: boolean) => void;
   setShowGuides: (s: boolean) => void;
-  setBrushType: (b: string) => void;
+  setBrushType: (b: any) => void;
   setShowGrid: (s: boolean) => void;
 }
 
