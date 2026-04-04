@@ -50,7 +50,7 @@ export function useGlobalGallery(
     if (!user) { setToastMsg("Please login to publish!"); return; }
     const canvas = canvasHandle.current?.getCanvas();
     if (!canvas) return;
-
+    
     const thumb = document.createElement('canvas');
     thumb.width = 600; thumb.height = 600;
     const tCtx = thumb.getContext('2d');
