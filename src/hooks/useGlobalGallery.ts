@@ -3,6 +3,13 @@ import { collection, addDoc, query, orderBy, limit, getDocs, doc, updateDoc, del
 import { db } from '../lib/firebase';
 import type { CanvasHandle } from '../components/Canvas';
 
+interface Comment {
+  authorId: string;
+  authorName: string;
+  text: string;
+  createdAt: number;
+}
+
 export interface GlobalArtwork {
   id: string;
   dataUrl: string;
@@ -10,6 +17,7 @@ export interface GlobalArtwork {
   author: string;
   authorId: string;
   likes: string[];
+  comments?: Comment[];
 }
 
 export function useGlobalGallery(
@@ -57,7 +65,8 @@ export function useGlobalGallery(
         createdAt: Date.now(),
         author: user.displayName || 'Anonymous Artist',
         authorId: user.uid,
-        likes: []
+        likes: [],
+        comments: []
       });
       setToastMsg("Masterpiece Published to the World!");
       if (globalArtworks.length > 0) fetchGlobalGallery();
@@ -102,8 +111,38 @@ export function useGlobalGallery(
     }
   }, [user, setToastMsg]);
 
+  const addComment = useCallback(async (artworkId: string, text: string) => {
+    if (!user) {
+      setToastMsg("Please login to comment"); return }
+
+      if (!text.trim()) return;
+
+      const newComment: Comment = {
+        authorId: user.uid,
+        authorName: user.displayName || 'Anonymous',
+        text: text.trim(),
+        createdAt: Date.now()
+      };
+      const artRef = doc(db, 'gallery', artworkId)
+
+      try {
+        await updateDoc(artRef, {
+          comments: arrayUnion(newComment)
+        });
+
+        setGlobalArtworks(prev => prev.map(art => {
+          if (art.id === artworkId) {
+            return { ...art, comments: [...(art.comments || []), newComment] };
+          }
+          return art;
+        }));
+      } catch (e) {
+        setToastMsg("Failed to post comment");
+      }
+  }, [user, setToastMsg]);
+
   return { 
     globalArtworks, publishArtwork, fetchGlobalGallery, isPublishing, isLoading,
-    toggleLike, deleteGlobalArtwork
+    toggleLike, deleteGlobalArtwork, addComment
   };
 }
