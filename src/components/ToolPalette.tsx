@@ -15,6 +15,7 @@ interface Props {
   brushOpacity: number;
   brushType: string;
   showGuides: boolean;
+  showGrid: boolean;
   setBrushColor: (c: string) => void;
   setBrushSize: (s: number) => void;
   setBrushOpacity: (o: number) => void;
@@ -23,6 +24,7 @@ interface Props {
   setMirror: (m: boolean) => void;
   setShowGuides: (s: boolean) => void;
   setBrushType: (b: string) => void;
+  setShowGrid: (s: boolean) => void;
 }
 
 export default function ToolPalette(props: Props) {
@@ -81,6 +83,15 @@ export default function ToolPalette(props: Props) {
           onToggleMirror={() => props.setMirror(!props.mirror)}
           onToggleGuides={() => props.setShowGuides(!props.showGuides)}
         />
+        <button
+          onClick={() => props.setShowGrid(!props.showGrid)}
+          className={`flex items-center justify-center p-2 rounded-lg transition-all ${props.showGrid ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50' : 'bg-zinc-800 text-zinc-400 border border-zinc-700/50 hover:bg-zinc-700'}`}
+          title="Toggle Background Grid"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4h16v16H4V4zm4 0v16m4-16v16m4-16v16M4 8h16M4 12h16M4 16h16" />
+          </svg>
+        </button>
       </div>
     </div>
   );

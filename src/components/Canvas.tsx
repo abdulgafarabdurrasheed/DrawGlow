@@ -33,9 +33,10 @@ interface Props {
     brushType: string;
     activeLayerId: string;
     onStrokeEnd: (stroke: Stroke) => void;
+    showGrid: boolean;
 }
 
-const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, brushType, activeLayerId, onStrokeEnd }, ref) => {
+const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, brushType, activeLayerId, onStrokeEnd, showGrid }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawing = useRef(false);
     const lastPos = useRef<Point>({ x: 0, y: 0 });
@@ -106,8 +107,37 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
         if (!canvas || !ctx) return;
 
         ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalCompositeOperation = 'source-over'; 
+        ctx.globalAlpha = 1.0;
+        ctx.shadowBlur = 0;
+        ctx.lineCap = 'butt';
+        
         ctx.fillStyle = BG_COLOR;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+
+        if (showGrid) {
+            ctx.save();
+            ctx.strokeStyle = '#27272a'
+            ctx.lineWidth = 1;
+            ctx.beginPath()
+
+            let gridSize = 50 * viewport.current.scale;
+            if (gridSize < 10) gridSize = 10;
+
+            const offsetX = viewport.current.x % gridSize;
+            const offsetY = viewport.current.y % gridSize;
+
+            for (let x = offsetX; x < canvas.width; x += gridSize) {
+               ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+            }
+            for (let y = offsetY; y < canvas.height; y += gridSize) {
+                ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
         ctx.translate(viewport.current.x, viewport.current.y);
         ctx.scale(viewport.current.scale, viewport.current.scale);
 
@@ -159,7 +189,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
                 drawStrokeSegment(ctx, tempStroke, tempStroke.points[p - 1], tempStroke.points[p], cx, cy);
             }
         }
-    }, [drawStrokeSegment]);
+    }, [drawStrokeSegment, showGrid]);
 
     useImperativeHandle(ref, () => ({
         getCanvas: () => canvasRef.current,
@@ -170,7 +200,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
 
     useEffect(() => {
         performRedraw(strokes);
-    }, [strokes, performRedraw]);
+    }, [strokes, performRedraw, showGrid]);
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;

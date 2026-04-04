@@ -37,6 +37,7 @@ function App() {
   const { undoStack, undo, clearCanvas, addStroke } = useUndoRedo(canvasHandle);
   const { gallery, saveToGallery, deleteFromGallery } = useGallery(canvasHandle, symmetryCount, setToastMsg)
   const [showGlobalGallery, setShowGlobalGallery] = useState(false);
+  const [showGrid, setShowGrid] = useState<boolean>(false)
 
   const { globalArtworks, publishArtwork, fetchGlobalGallery, isPublishing, isLoading, toggleLike, deleteGlobalArtwork } = useGlobalGallery(canvasHandle, setToastMsg, user);
   const openGlobalGallery = () => {
@@ -134,6 +135,7 @@ function App() {
         strokes={visibleStrokes}
         activeLayerId={activeLayerId}
         onStrokeEnd={addStroke}
+        showGrid={showGrid}
       />
       <GuidesOverlay
         symmetryCount={symmetryCount}
@@ -168,6 +170,7 @@ function App() {
         symmetryCount={symmetryCount}
         glow={glow}
         mirror={mirror}
+        showGrid={showGrid}
         showGuides={showGuides}
         setBrushColor={setBrushColor}
         setBrushType={setBrushType}
@@ -177,6 +180,7 @@ function App() {
         setGlow={setGlow}
         setMirror={setMirror}
         setShowGuides={setShowGuides}
+        setShowGrid={setShowGrid}
       />
       {toastMsg && <Toast message={toastMsg} onDismiss={() => setToastMsg('')} />}
 
