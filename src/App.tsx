@@ -39,7 +39,7 @@ function App() {
   const [showGlobalGallery, setShowGlobalGallery] = useState(false);
   const [showGrid, setShowGrid] = useState<boolean>(false)
 
-  const { globalArtworks, publishArtwork, fetchGlobalGallery, isPublishing, isLoading, toggleLike, deleteGlobalArtwork } = useGlobalGallery(canvasHandle, setToastMsg, user);
+  const { globalArtworks, publishArtwork, fetchGlobalGallery, isPublishing, isLoading, toggleLike, deleteGlobalArtwork, addComment } = useGlobalGallery(canvasHandle, setToastMsg, user);
   const openGlobalGallery = () => {
       setShowGlobalGallery(true);
       fetchGlobalGallery();
@@ -261,8 +261,10 @@ function App() {
           onClose={() => setShowGlobalGallery(false)}
           onLike={toggleLike}
           onDelete={deleteGlobalArtwork}
+          onComment={addComment}
         />
       )}
+
 
 
 

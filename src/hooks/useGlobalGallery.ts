@@ -123,7 +123,7 @@ export function useGlobalGallery(
         text: text.trim(),
         createdAt: Date.now()
       };
-      const artRef = doc(db, 'gallery', artworkId)
+      const artRef = doc(db, 'gallery', artworkId);
 
       try {
         await updateDoc(artRef, {
