@@ -37,6 +37,40 @@ interface Props {
     showGrid: boolean;
 }
 
+function catmullRomPoints(points: Point[], segments: number = 6): Point[] {
+    if (points.length < 3) return points;
+    const result: Point[] = [points[0]];
+    
+    for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[Math.max(i - 1, 0)];
+        const p1 = points[i];
+        const p2 = points[Math.min(i + 1, points.length - 1)];
+        const p3 = points[Math.min(i + 2, points.length - 1)];
+        
+        for (let t = 1; t <= segments; t++) {
+            const f = t / segments;
+            const f2 = f * f;
+            const f3 = f2 * f;
+            
+            const x = 0.5 * (
+                (2 * p1.x) +
+                (-p0.x + p2.x) * f +
+                (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * f2 +
+                (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * f3
+            );
+            const y = 0.5 * (
+                (2 * p1.y) +
+                (-p0.y + p2.y) * f +
+                (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * f2 +
+                (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * f3
+            );
+            result.push({ x, y });
+        }
+    }
+    return result;
+}
+
+
 const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, brushType, activeLayerId, onStrokeEnd, showGrid }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawing = useRef(false);
@@ -163,9 +197,9 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
                     ctx.shadowBlur = stroke.glow ? stroke.brushSize * 3 : 0;
                     ctx.shadowColor = stroke.glow ? stroke.brushColor : 'transparent';
                 }
-
-            for (let p = 1; p < stroke.points.length; p++) {
-                drawStrokeSegment(ctx, stroke, stroke.points[p - 1], stroke.points[p], cx, cy);
+            const smoothed = catmullRomPoints(stroke.points);
+            for (let p = 1; p < smoothed.length; p++) {
+                drawStrokeSegment(ctx, stroke, smoothed[p - 1], smoothed[p], cx, cy);
             }
         });
         
@@ -186,9 +220,11 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
                     ctx.shadowBlur = tempStroke.glow ? tempStroke.brushSize * 3 : 0;
                     ctx.shadowColor = tempStroke.glow ? tempStroke.brushColor : 'transparent';
                 }
-            for (let p = 1; p < tempStroke.points.length; p++) {
-                drawStrokeSegment(ctx, tempStroke, tempStroke.points[p - 1], tempStroke.points[p], cx, cy);
+            const smoothedTemp = catmullRomPoints(tempStroke.points);
+            for (let p = 1; p < smoothedTemp.length; p++) {
+                drawStrokeSegment(ctx, tempStroke, smoothedTemp[p - 1], smoothedTemp[p], cx, cy);
             }
+
         }
     }, [drawStrokeSegment, showGrid]);
 
@@ -227,11 +263,12 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
                 ctx.shadowColor = stroke.glow ? stroke.brushColor : 'transparent'
             }
 
-            for (let p = 1; p < stroke.points.length; p++) {
-                drawStrokeSegment(ctx, stroke, stroke.points[p - 1], stroke.points[p], cx, cy);
-
-                await new Promise(r => requestAnimationFrame(r));
+            const smoothedTL = catmullRomPoints(stroke.points);
+            for (let p = 1; p < smoothedTL.length; p++) {
+                drawStrokeSegment(ctx, stroke, smoothedTL[p - 1], smoothedTL[p], cx, cy);
+                if (p % 6 === 0) await new Promise(r => requestAnimationFrame(r));
             }
+
         }
     }, [strokes, drawStrokeSegment]);
 

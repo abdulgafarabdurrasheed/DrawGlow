@@ -116,7 +116,8 @@ function App() {
     const handleMouseMove = (e: MouseEvent) => {
       setCursorPosition({ x: e.clientX, y: e.clientY });
       setShowCursor(true);
-    };
+    }
+
     const handleMouseLeave = () => setShowCursor(false);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseleave', handleMouseLeave);
@@ -125,6 +126,14 @@ function App() {
       window.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, []);
+
+    useEffect(() => {
+      const hasVisited = localStorage.getItem('visited');
+      if (!hasVisited) {
+        localStorage.setItem('visited', 'true');
+        setToastMsg("Welcome to DrawGlow! Press '?' For a detailed guide too all features");
+      }
+    }, []);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
