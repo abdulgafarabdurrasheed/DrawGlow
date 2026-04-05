@@ -13,6 +13,7 @@ import { useMemo } from "react";
 import GlobalGallery from "./components/GlobalGallery";
 import { useGlobalGallery } from "./hooks/useGlobalGallery";
 import { useAuth } from "./hooks/useAuth";
+import Guide from './components/Guide'
 
 export interface Layer { id: string; name: string; visible: boolean; }
 
@@ -32,6 +33,7 @@ function App() {
   const { user, loginWithGoogle, logout } = useAuth();
   const [brushOpacity, setBrushOpacity] = useState<number>(DEFAULTS.brushOpacity || 1);
   const [brushType, setBrushType] = useState<BrushType>(DEFAULTS.brushType);
+  const [showGuide, setShowGuide] = useState(false);
   const [layers, setLayers] = useState<Layer[]>([{ id: 'layer-1', name: 'Background', visible: true }]);
   const [activeLayerId, setActiveLayerId] = useState('layer-1');
   const { undoStack, undo, clearCanvas, addStroke } = useUndoRedo(canvasHandle);
@@ -123,6 +125,17 @@ function App() {
       window.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, []);
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === '?' && !e.ctrlKey && !e.metaKey) {
+        setShowGuide(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
   
   return (
     <div className="w-screen h-screen overflow-hidden bg-zinc-950 font-sans text-white select-none relative">
@@ -265,6 +278,9 @@ function App() {
         />
       )}
 
+      {showGuide && (
+        <Guide onClose={() => setShowGuide(false)} />
+      )}
 
 
 

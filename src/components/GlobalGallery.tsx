@@ -1,7 +1,6 @@
 import type { GlobalArtwork } from "../hooks/useGlobalGallery";
 import { useState } from "react";
 import { Heart, Trash2 } from "lucide-react";
-import { loadBundle } from "firebase/firestore";
 
 interface Props {
   artworks: GlobalArtwork[];
