@@ -1,6 +1,7 @@
-import React, { useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, useCallback, useEffect, forwardRef, useImperativeHandle, useState } from 'react';
 import { BG_COLOR } from '../lib/constants';
 import { playStrokeEnd, playStrokeStart } from '../lib/sounds';
+import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 
 export interface Point { x: number; y: number }
 
@@ -77,6 +78,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
     const isDrawing = useRef(false);
     const lastPos = useRef<Point>({ x: 0, y: 0 });
     const currentStroke = useRef<Stroke | null>(null);
+    const [zoomLevel, setZoomLevel] = useState(1);
     
     const viewport = useRef({ x: 0, y: 0, scale: 1 });
 
@@ -305,6 +307,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
                 viewport.current.x = mouseX - (mouseX - viewport.current.x) * (newScale / oldScale);
                 viewport.current.y = mouseY - (mouseY - viewport.current.y) * (newScale / oldScale);
                 viewport.current.scale = newScale;
+                setZoomLevel(newScale);
             } else {
                 viewport.current.x -= e.deltaX;
                 viewport.current.y -= e.deltaY;
@@ -412,18 +415,74 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
         };
     }, [stopDrawing]);
 
-    return (
-        <canvas
-            ref={canvasRef}
-            className="absolute inset-0 cursor-crosshair touch-none"
-            style={{ touchAction: 'none' }}
-            onMouseDown={startDrawing}
-            onMouseMove={draw}
-            onTouchStart={startDrawing}
-            onTouchMove={draw}
-        />
+    const handleZoomUI = (direction: 'in' | 'out' | 'reset' ) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        let newScale = viewport.current.scale;
+        if (direction === 'in') newScale *= 1.25
+        if (direction === 'out') newScale /= 1.25
+        if (direction === 'reset') {
+            viewport.current = { x: 0, y: 0, scale: 1 };
+            newScale = 1
+        }
+
+        newScale = Math.max(0.1, Math.min(newScale, 15))
+
+        if (direction !== 'reset') {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            viewport.current.x = centerX - (centerX - viewport.current.x) * (newScale / viewport.current.scale);
+            viewport.current.y = centerY - (centerY - viewport.current.y) * (newScale / viewport.current.scale)
+        }
+
+        viewport.current.scale = newScale
+        setZoomLevel(newScale);
+        requestAnimationFrame(() => performRedraw(strokes));
+    };
+
+       return (
+        <div className="absolute inset-0">
+            <canvas
+                ref={canvasRef}
+                className="absolute inset-0 cursor-crosshair touch-none"
+                style={{ touchAction: 'none' }}
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onTouchStart={startDrawing}
+                onTouchMove={draw}
+            />
+
+            <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-10">
+                <button 
+                  onClick={() => handleZoomUI('reset')} 
+                  className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600 flex items-center justify-center shadow-lg transition-colors"
+                  title="Reset View"
+                >
+                  <Maximize className="w-5 h-5" />
+                </button>
+
+                <div className="flex flex-col bg-zinc-900 rounded-xl border border-zinc-800 shadow-lg overflow-hidden">
+                    <button 
+                      onClick={() => handleZoomUI('in')}
+                      className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors border-b border-zinc-800"
+                    >
+                      <ZoomIn className="w-5 h-5" />
+                    </button>
+                    <div className="w-10 h-8 flex items-center justify-center text-[10px] font-bold text-zinc-500 bg-black/20 select-none">
+                      {Math.round(zoomLevel * 100)}%
+                    </div>
+                    <button 
+                      onClick={() => handleZoomUI('out')}
+                      className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors border-t border-zinc-800"
+                    >
+                      <ZoomOut className="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
+        </div>
     );
 });
 
 Canvas.displayName = 'Canvas';
-export default React.memo(Canvas);
+export default React.memo(Canvas); 
