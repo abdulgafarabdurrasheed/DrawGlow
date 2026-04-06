@@ -14,6 +14,7 @@ import GlobalGallery from "./components/GlobalGallery";
 import { useGlobalGallery } from "./hooks/useGlobalGallery";
 import { useAuth } from "./hooks/useAuth";
 import Guide from './components/Guide'
+import { playUndo, playClear, playPublish } from "./lib/sounds";
 
 export interface Layer { id: string; name: string; visible: boolean; }
 
@@ -175,13 +176,13 @@ function App() {
       />
       <TopBar
         undoDisabled={undoStack.length === 0}
-        onUndo={undo}
-        onClear={clearCanvas}
+        onUndo={() => { undo(); playUndo(); }}
+        onClear={() => { clearCanvas(); playClear(); }}
         onExport={handleExport}
         onSave={saveToGallery}
         onGallery={() => setShowGallery(true)}
         isPublishing={isPublishing}
-        onPublishArtwork={publishArtwork}
+        onPublishArtwork={() => { publishArtwork(); playPublish(); }}
         onOpenGlobalGallery={openGlobalGallery}
         user={user}
         onLogin={loginWithGoogle}

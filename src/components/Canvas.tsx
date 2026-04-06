@@ -1,5 +1,6 @@
 import React, { useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { BG_COLOR } from '../lib/constants';
+import { playStrokeEnd, playStrokeStart } from '../lib/sounds';
 
 export interface Point { x: number; y: number }
 
@@ -342,6 +343,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
     const stopDrawing = useCallback(() => {
         if (isDrawing.current && currentStroke.current && currentStroke.current.points.length > 1) {
             onStrokeEnd(currentStroke.current);
+            playStrokeEnd();
         }
         isDrawing.current = false;
         currentStroke.current = null;
@@ -388,6 +390,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
     const startDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
         e.preventDefault();
         isDrawing.current = true;
+        playStrokeStart()
         const startPos = getCoordinates(e);
         lastPos.current = startPos;
         
