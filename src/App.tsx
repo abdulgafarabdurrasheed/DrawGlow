@@ -41,6 +41,8 @@ function App() {
   const { gallery, saveToGallery, deleteFromGallery } = useGallery(canvasHandle, symmetryCount, setToastMsg)
   const [showGlobalGallery, setShowGlobalGallery] = useState(false);
   const [showGrid, setShowGrid] = useState<boolean>(false)
+  const [referenceImage, setReferenceImage] = useState<string | null>(null);
+  const [showRefImage, setShowRefImage] = useState<boolean>(true);
 
   const { globalArtworks, publishArtwork, fetchGlobalGallery, isPublishing, isLoading, toggleLike, deleteGlobalArtwork, addComment } = useGlobalGallery(canvasHandle, setToastMsg, user);
   const openGlobalGallery = () => {
@@ -69,6 +71,18 @@ function App() {
 
     const handleSvgExport = () => {
       canvasHandle.current?.exportSVG();
+    };
+
+    const handleImageUpload = (file: File) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (e.target?.result) {
+                setReferenceImage(e.target.result as string);
+                setShowRefImage(true);
+                setToastMsg("Reference image loaded!");
+            }
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleExport = useCallback(() => {
@@ -166,6 +180,8 @@ function App() {
         activeLayerId={activeLayerId}
         onStrokeEnd={addStroke}
         showGrid={showGrid}
+        referenceImage={referenceImage}
+        showRefImage={showRefImage}
       />
       <GuidesOverlay
         symmetryCount={symmetryCount}
@@ -193,6 +209,9 @@ function App() {
         onLogout={logout}
         onTimeLapse={handleTimeLapse}
         onSvgExport={handleSvgExport}
+        onImageUpload={handleImageUpload}
+        showRefImage={showRefImage}
+        onToggleRefImage={() => setShowRefImage(!showRefImage)}
       />
       <ToolPalette
         brushColor={brushColor}

@@ -38,6 +38,8 @@ interface Props {
     activeLayerId: string;
     onStrokeEnd: (stroke: Stroke) => void;
     showGrid: boolean;
+    referenceImage: string | null;
+    showRefImage: boolean;
 }
 
 function catmullRomPoints(points: Point[], segments: number = 6): Point[] {
@@ -74,7 +76,7 @@ function catmullRomPoints(points: Point[], segments: number = 6): Point[] {
 }
 
 
-const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, brushType, activeLayerId, onStrokeEnd, showGrid }, ref) => {
+const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize, brushOpacity, glow, mirror, symmetryCount, brushType, activeLayerId, onStrokeEnd, showGrid, referenceImage, showRefImage }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawing = useRef(false);
     const lastPos = useRef<Point>({ x: 0, y: 0 });
@@ -82,6 +84,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
     const [zoomLevel, setZoomLevel] = useState(1);
     
     const viewport = useRef({ x: 0, y: 0, scale: 1 });
+    const imgRef = useRef<HTMLImageElement | null>(null);
 
     const drawStrokeSegment = useCallback((ctx: CanvasRenderingContext2D, stroke: Stroke, lastP: Point, currP: Point, cx: number, cy: number) => {
         const angleStep = (2 * Math.PI) / stroke.symmetryCount;
@@ -177,6 +180,31 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
             ctx.restore();
         }
 
+        if (imgRef.current && showRefImage) {
+            ctx.save();
+
+            ctx.translate(viewport.current.x, viewport.current.y);
+            ctx.scale(viewport.current.scale, viewport.current.scale);
+
+                const cx  = canvas.width / 2;
+                const cy = canvas.height / 2;
+
+                const scaleX = (canvas.width * 0.8) / imgRef.current.width;
+                const scaleY = (canvas.height * 0.8) / imgRef.current.height;
+                const imgScale = Math.min(scaleX, scaleY, 1);
+
+                const drawWidth = imgRef.current.width * imgScale;
+                const drawHeight = imgRef.current.height * imgScale;
+
+                const hw = drawWidth / 2;
+                const hh = drawHeight / 2;
+
+                ctx.globalAlpha = 0.25;
+
+                ctx.drawImage(imgRef.current, cx - hw, cy - hh, drawWidth, drawHeight);
+                ctx.restore();
+        }
+
         ctx.translate(viewport.current.x, viewport.current.y);
         ctx.scale(viewport.current.scale, viewport.current.scale);
 
@@ -230,7 +258,22 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
             }
 
         }
-    }, [drawStrokeSegment, showGrid]);
+    }, [drawStrokeSegment, showGrid, showRefImage]);
+
+    useEffect(() => {
+        if (referenceImage) {
+            const img = new Image();
+            img.onload = () => {
+                imgRef.current = img;
+                performRedraw(strokes)
+            };
+            img.src = referenceImage;
+        } else {
+            imgRef.current = null;
+
+            requestAnimationFrame(() => performRedraw(strokes));
+        }
+    }, [referenceImage, performRedraw, strokes])
 
     const playTimeLapse = useCallback(async () => {
         const canvas = canvasRef.current;
@@ -330,7 +373,7 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
 
     useEffect(() => {
         performRedraw(strokes);
-    }, [strokes, performRedraw, showGrid]);
+    }, [strokes, performRedraw, showGrid, showRefImage]);
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;

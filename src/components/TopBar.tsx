@@ -1,4 +1,4 @@
-import { Download, Undo, Trash2, Save, Image, Play, PenTool } from "lucide-react";
+import { Download, Undo, Trash2, Save, Image, Play, PenTool, ImagePlus } from "lucide-react";
 
 interface Props {
   undoDisabled: boolean;
@@ -13,8 +13,11 @@ interface Props {
   onOpenGlobalGallery?: () => void;
   onLogin?: () => void;
   onLogout?: () => void;
-  onTimeLapse?: () => void
-  onSvgExport?: () => void
+  onTimeLapse?: () => void;
+  onSvgExport?: () => void;
+  onImageUpload?: (file: File) => void;
+  showRefImage?: boolean;
+  onToggleRefImage?: () => void;
 }
 
 export default function TopBar({
@@ -32,6 +35,9 @@ export default function TopBar({
   onLogout,
   onTimeLapse,
   onSvgExport,
+  onImageUpload,
+  showRefImage,
+  onToggleRefImage,
 }: Props) {
   return (
     <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 pointer-events-none">
@@ -85,6 +91,38 @@ export default function TopBar({
           >
             World Gallery
           </button>
+          
+        <input 
+            type="file" 
+            id="ref-upload" 
+            accept="image/png, image/jpeg, image/webp" 
+            className="hidden" 
+            onChange={(e) => {
+                if (e.target.files && e.target.files[0] && onImageUpload) {
+                    onImageUpload(e.target.files[0]);
+                }
+                e.target.value = '';
+            }} 
+        />
+
+        <label 
+            htmlFor="ref-upload" 
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors shadow-lg shadow-black/20 cursor-pointer"
+            title="Import Reference Image"
+        >
+            <ImagePlus className="w-5 h-5 pointer-events-none" />
+        </label>
+
+        {showRefImage !== undefined && onToggleRefImage && (
+             <button
+                 onClick={onToggleRefImage}
+                 className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-colors shadow-lg shadow-black/20 ${showRefImage ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700'}`}
+                 title="Toggle Reference Image Visibility"
+             >
+                 {showRefImage ? '👁' : '⊘'}
+             </button>
+        )}
+
 
         <div className="h-6 w-px bg-zinc-700/50 mx-2"></div>
           {user ? (
