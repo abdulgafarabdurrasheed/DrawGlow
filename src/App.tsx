@@ -73,6 +73,12 @@ function App() {
       canvasHandle.current?.exportSVG();
     };
 
+    const handleVideoExport = async () => {
+      setToastMsg("Recording Video... Please wait!");
+      await canvasHandle.current?.exportVideo();
+      setToastMsg("Video Exported successfully!");
+    };
+
     const handleImageUpload = (file: File) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -212,6 +218,7 @@ function App() {
         onImageUpload={handleImageUpload}
         showRefImage={showRefImage}
         onToggleRefImage={() => setShowRefImage(!showRefImage)}
+        onVideoExport={handleVideoExport}
       />
       <ToolPalette
         brushColor={brushColor}

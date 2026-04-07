@@ -24,6 +24,7 @@ export interface CanvasHandle {
     redrawStrokes: (strokes: Stroke[]) => void;
     playTimeLapse: () => void
     exportSVG: () => void;
+    exportVideo: () => Promise<void>
 }
 
 interface Props {
@@ -362,13 +363,45 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
         setTimeout(() => URL.revokeObjectURL(url), 100);
     }, [strokes])
 
+    const exportVideo = useCallback(async () => {
+        const canvas = canvasRef.current
+        if (!canvas) return;
+
+        const stream = canvas.captureStream(60);
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' })
+        const chunks: Blob[] = [];
+
+        recorder.ondataavailable = (e) => {
+            if (e.data.size > 0) chunks.push(e.data);
+        };
+
+        return new Promise<void>((resolve) => {
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `drawglow_timelapse_${Date.now()}.webm`;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 100);
+                resolve();
+            };
+
+            recorder.start();
+            playTimeLapse().then(() => {
+                recorder.stop();
+            });
+        });
+    }, [playTimeLapse])
+
     useImperativeHandle(ref, () => ({
         getCanvas: () => canvasRef.current,
         getContext: () => canvasRef.current?.getContext('2d') ?? null,
         toDataURL: () => canvasRef.current?.toDataURL() ?? '',
         redrawStrokes: performRedraw,
         playTimeLapse,
-        exportSVG
+        exportSVG,
+        exportVideo
     }));
 
     useEffect(() => {

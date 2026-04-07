@@ -1,4 +1,4 @@
-import { Download, Undo, Trash2, Save, Image, Play, PenTool, ImagePlus } from "lucide-react";
+import { Download, Undo, Trash2, Save, Image, Play, PenTool, ImagePlus, Film } from "lucide-react";
 
 interface Props {
   undoDisabled: boolean;
@@ -18,6 +18,7 @@ interface Props {
   onImageUpload?: (file: File) => void;
   showRefImage?: boolean;
   onToggleRefImage?: () => void;
+  onVideoExport?: () => void;
 }
 
 export default function TopBar({
@@ -38,6 +39,7 @@ export default function TopBar({
   onImageUpload,
   showRefImage,
   onToggleRefImage,
+  onVideoExport
 }: Props) {
   return (
     <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 pointer-events-none">
@@ -143,30 +145,52 @@ export default function TopBar({
             </button>
           )}
 
+        <div className="h-6 w-px bg-zinc-700/50 mx-2"></div>
+
+        <button
+          onClick={onTimeLapse}
+          className="p-2.5 rounded-md bg-cyan-600/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/50 transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] animate-pulse"
+          title="Play Timelapse (60fps)"
+        >
+          <Play className="w-5 h-5 fill-current" />
+        </button>
+
+        <div className="relative group ml-2">
           <button
-            onClick={onTimeLapse}
-            className="px-4 py-2 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white font-medium flex items-center gap-2 border border-cyan-500 transition-colors shadow-[0_0_15px_rgba(6,182,212,0.3)] animate-pulse"
+            className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-medium flex items-center gap-2 rounded-md border border-zinc-700 transition-colors shadow-lg"
           >
-            <Play className="w-4 h-4 fill-current" />
-            <span className="hidden sm:inline">Timelapse</span>
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Export</span>
+            <span className="text-xs ml-1 opacity-50">▼</span>
           </button>
+          
+          <div className="absolute right-0 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+            <div className="flex flex-col gap-1 w-48 p-2 bg-zinc-900 border border-zinc-700 shadow-2xl rounded-lg pointer-events-auto">
+              
+              <button 
+                onClick={onExport} 
+                className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-md hover:bg-zinc-800 text-zinc-300 text-sm transition-colors border border-transparent hover:border-zinc-700"
+              >
+                <Image className="w-4 h-4" /> PNG Image
+              </button>
+              
+              <button 
+                onClick={onSvgExport} 
+                className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-md hover:bg-purple-900/30 text-purple-400 text-sm transition-colors border border-transparent hover:border-purple-500/30"
+              >
+                <PenTool className="w-4 h-4" /> Vector SVG
+              </button>
+              
+              <button 
+                onClick={onVideoExport} 
+                className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-md hover:bg-rose-900/30 text-rose-400 text-sm transition-colors border border-transparent hover:border-rose-500/30"
+              >
+                <Film className="w-4 h-4" /> Media Video
+              </button>
 
-        <button
-          onClick={onSvgExport}
-          className="px-4 py-2 rounded-md bg-purple-600/20 hover:bg-purple-600/40 text-purple-400 font-medium flex items-center gap-2 border border-purple-500/50 transition-colors"
-          title="Export Infinitely Scalable Vector"
-        >
-          <PenTool className="w-4 h-4" />
-          <span className="hidden sm:inline">Export SVG</span>
-        </button>
-
-        <button
-          onClick={onExport}
-          className="px-4 py-2 rounded-md bg-zinc-800 hover:bg-zinc-700 text-white font-medium flex items-center gap-2 border border-zinc-700 transition-colors"
-        >
-          <Download className="w-4 h-4" />
-          <span className="hidden sm:inline">Export PNG</span>
-        </button>
+            </div>
+          </div>
+        </div>
 
       </div>
     </div>
