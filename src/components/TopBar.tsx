@@ -1,4 +1,4 @@
-import { Download, Undo, Trash2, Save, Image, Play } from "lucide-react";
+import { Download, Undo, Trash2, Save, Image, Play, PenTool } from "lucide-react";
 
 interface Props {
   undoDisabled: boolean;
@@ -14,6 +14,7 @@ interface Props {
   onLogin?: () => void;
   onLogout?: () => void;
   onTimeLapse?: () => void
+  onSvgExport?: () => void
 }
 
 export default function TopBar({
@@ -29,7 +30,8 @@ export default function TopBar({
   onOpenGlobalGallery,
   onLogin,
   onLogout,
-  onTimeLapse
+  onTimeLapse,
+  onSvgExport,
 }: Props) {
   return (
     <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 pointer-events-none">
@@ -112,12 +114,22 @@ export default function TopBar({
           </button>
 
         <button
+          onClick={onSvgExport}
+          className="px-4 py-2 rounded-md bg-purple-600/20 hover:bg-purple-600/40 text-purple-400 font-medium flex items-center gap-2 border border-purple-500/50 transition-colors"
+          title="Export Infinitely Scalable Vector"
+        >
+          <PenTool className="w-4 h-4" />
+          <span className="hidden sm:inline">Export SVG</span>
+        </button>
+
+        <button
           onClick={onExport}
           className="px-4 py-2 rounded-md bg-zinc-800 hover:bg-zinc-700 text-white font-medium flex items-center gap-2 border border-zinc-700 transition-colors"
         >
           <Download className="w-4 h-4" />
           <span className="hidden sm:inline">Export PNG</span>
         </button>
+
       </div>
     </div>
   );

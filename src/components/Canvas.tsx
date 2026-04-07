@@ -23,6 +23,7 @@ export interface CanvasHandle {
     toDataURL: () => string;
     redrawStrokes: (strokes: Stroke[]) => void;
     playTimeLapse: () => void
+    exportSVG: () => void;
 }
 
 interface Props {
@@ -275,12 +276,56 @@ const Canvas = forwardRef<CanvasHandle, Props>(({ strokes, brushColor, brushSize
         }
     }, [strokes, drawStrokeSegment]);
 
+    const exportSVG = useCallback(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+
+        let svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}" viewBox="0 0 ${canvas.width} ${canvas.height}" style="background-color: ${BG_COLOR}">\n`;
+        strokes.forEach((stroke) => {
+            if (stroke.points.length < 2) return;
+            if (stroke.brushType === 'eraser') return
+
+            const smoothed = catmullRomPoints(stroke.points);
+            let d = `M ${smoothed[0].x - cx} ${smoothed[0].y - cy}`;
+            for (let p = 1; p < smoothed.length; p++) {
+                d += ` L ${smoothed[p].x - cx} ${smoothed[p].y - cy}`;
+            }
+
+            const angleStep = 360 / stroke.symmetryCount;
+
+            for (let i = 0; i < stroke.symmetryCount; i++) {
+                const angle = i * angleStep;
+                svgStr += `  <g transform="translate(${cx}, ${cy}) rotate(${angle})">\n`;
+                svgStr += `    <path d="${d}" stroke="${stroke.brushColor}" fill="none" stroke-width="${stroke.brushSize}" stroke-opacity="${stroke.brushOpacity}" stroke-linecap="round" stroke-linejoin="round" />\n`;
+                svgStr += `  </g>\n`;
+                if (stroke.mirror) {
+                    svgStr += `  <g transform="translate(${cx}, ${cy}) rotate(${angle}) scale(-1, 1)">\n`;
+                    svgStr += `    <path d="${d}" stroke="${stroke.brushColor}" fill="none" stroke-width="${stroke.brushSize}" stroke-opacity="${stroke.brushOpacity}" stroke-linecap="round" stroke-linejoin="round" />\n`;
+                    svgStr += `  </g>\n`;
+                }
+            }
+        });
+
+        svgStr += `</svg>`;
+        const blob = new Blob([svgStr], { type: "image/svg+xml" });
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement("a");
+        link.download = `drawglow_vector_${Date.now()}.svg`;
+
+        link.href = url;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+    }, [strokes])
+
     useImperativeHandle(ref, () => ({
         getCanvas: () => canvasRef.current,
         getContext: () => canvasRef.current?.getContext('2d') ?? null,
         toDataURL: () => canvasRef.current?.toDataURL() ?? '',
         redrawStrokes: performRedraw,
-        playTimeLapse
+        playTimeLapse,
+        exportSVG
     }));
 
     useEffect(() => {

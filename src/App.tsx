@@ -67,6 +67,10 @@ function App() {
       canvasHandle.current?.playTimeLapse();
     };
 
+    const handleSvgExport = () => {
+      canvasHandle.current?.exportSVG();
+    };
+
     const handleExport = useCallback(() => {
     const canvas = canvasHandle.current?.getCanvas();
     if (!canvas) return;
@@ -188,6 +192,7 @@ function App() {
         onLogin={loginWithGoogle}
         onLogout={logout}
         onTimeLapse={handleTimeLapse}
+        onSvgExport={handleSvgExport}
       />
       <ToolPalette
         brushColor={brushColor}
