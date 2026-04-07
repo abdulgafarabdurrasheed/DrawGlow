@@ -156,7 +156,7 @@ function App() {
       const hasVisited = localStorage.getItem('visited');
       if (!hasVisited) {
         localStorage.setItem('visited', 'true');
-        setToastMsg("Welcome to DrawGlow! Press '?' For a detailed guide too all features");
+        setShowGuide(true);
       }
     }, []);
 

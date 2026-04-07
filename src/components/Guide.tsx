@@ -18,10 +18,11 @@ const shortcuts = [
 const features = [
   { title: 'Brushes', desc: '4 brush types: Solid, Particles, Pulse, and Eraser' },
   { title: 'Symmetry', desc: 'Up to 32 radial axes with optional mirror mode' },
-  { title: 'Infinite Canvas', desc: 'Scroll to pan, Ctrl+Scroll to zoom' },
+  { title: 'Infinite Canvas', desc: 'Scroll to pan, Ctrl+Scroll to zoom or use bottom-right controls' },
   { title: 'Layers', desc: 'Non-destructive layers with visibility toggles' },
+  { title: 'Reference Tracing', desc: 'Import an image to magically trace over complex geometry' },
   { title: 'World Gallery', desc: 'Publish artwork, like, and comment on others' },
-  { title: 'Timelapse', desc: 'Watch your creation rebuild itself at 60fps' },
+  { title: 'Pro Exports', desc: 'Export as standard PNG, infinitely scalable SVG, or HD Timelapse Video' },
   { title: 'Grid', desc: 'Toggle a precision background grid for alignment' },
 ];
 
